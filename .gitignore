@@ -1,0 +1,87 @@
+# .NET Build Artifacts
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+*.cache
+*.deps.json
+*.runtimeconfig.json
+*.assets.json
+*.csproj.nuget.*
+*.AssemblyInfo.cs
+*.GlobalUsings.g.cs
+*.AssemblyAttributes.cs
+*.GeneratedMSBuildEditorConfig.editorconfig
+*.FileListAbsolute.txt
+*.CoreCompileInputs.cache
+*.genruntimeconfig.cache
+*.adfc8d6983.txt
+publish/
+ref/
+refint/
+apphost.exe
+
+# Node.js / Frontend
+node_modules/
+dist/
+build/
+.vite/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Environment Variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE - Visual Studio / VS Code
+.vs/
+.vscode/
+cursor/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+*.csproj.user
+
+# IDE - JetBrains Rider
+.idea/
+*.sln.iml
+
+# OS Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# Temporary Files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+*.bak
+
+# Game State Files (uncomment if savegames shouldn't be tracked)
+# savegame.txt
+# *.save
+
+# Logs (uncomment if game logs shouldn't be tracked)
+# logs/
+# *.log.json
+backend/logs/
+
+

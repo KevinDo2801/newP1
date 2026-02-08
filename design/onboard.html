@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Number Logic Game - Onboarding</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "var(--color-purple-500)",
+                        "primary-hover": "var(--color-purple-600)",
+                        "accent": "var(--color-cyan-500)",
+                        "accent-glow": "var(--color-cyan-glow)",
+                        "highlight": "var(--color-amber-400)",
+                        "background-light": "#f3f4f6",
+                        "background-dark": "var(--color-bg-navy-900)",
+                        "surface-dark": "var(--color-surface-slate-800)",
+                        "surface-border": "var(--color-border-slate-600)",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    
+    <!-- Design System -->
+    <link href="../frontend/src/global.css" rel="stylesheet"/>
+    
+    <!-- Custom Styles -->
+    <style>
+        .btn-highlight {
+            background: var(--color-amber-400);
+            box-shadow: 0 0 20px rgba(250, 204, 21, 0.4);
+        }
+        .btn-highlight:hover {
+            background: var(--color-amber-500);
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--color-bg-navy-900); 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--color-border-slate-600); 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--color-purple-500); 
+        }
+    </style>
+</head>
+<body class="bg-background-dark text-white font-display overflow-x-hidden min-h-screen flex flex-col items-center justify-center relative">
+    
+    <!-- Background Effects -->
+    <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none" style="background: linear-gradient(135deg, #1E1A4D 0%, #2B1161 45%, var(--color-bg-navy-900) 100%);">
+        <div class="absolute top-10 left-[10%] w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] animate-pulse"></div>
+        <div class="absolute bottom-10 right-[10%] w-[600px] h-[600px] bg-accent/10 rounded-full blur-[100px]"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full opacity-10 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:40px_40px]"></div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="relative z-10 w-full max-w-6xl px-6 py-12 flex flex-col md:flex-row items-center gap-12 lg:gap-20">
+        
+        <!-- Left Section: Hero & Form -->
+        <div class="flex-1 flex flex-col items-center md:items-start text-center md:text-left space-y-8">
+            
+            <!-- Hero Section -->
+            <div class="space-y-4">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-dark border border-accent/30 text-accent-glow text-xs font-bold uppercase tracking-widest shadow-lg mb-2">
+                    <span class="w-2 h-2 rounded-full bg-accent animate-ping"></span>
+                    Logic Puzzle v2.0
+                </div>
+                
+                <h1 class="text-5xl md:text-7xl font-black tracking-tight leading-none text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-gray-400 drop-shadow-xl">
+                    Number <br/>
+                    <span class="bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent-glow">Logic Game</span>
+                </h1>
+                
+                <p class="text-lg md:text-xl text-slate-300 font-medium max-w-lg">
+                    Master the grid, unlock the outer rings, and challenge your brain in this vibrant puzzle adventure.
+                </p>
+            </div>
+            
+            <!-- Player Form -->
+            <div class="w-full max-w-md space-y-6 p-6 rounded-2xl border border-surface-border/50 backdrop-blur-md shadow-2xl" style="background-color: var(--color-surface-purple-dark);">
+                
+                <!-- Name Input -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-bold text-accent-glow uppercase tracking-wider" for="player-username">
+                        Player Username
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span class="material-symbols-outlined text-slate-400">person</span>
+                        </div>
+                        <input 
+                            class="block w-full pl-10 pr-3 py-3 rounded-xl border-2 border-surface-border bg-background-dark/80 text-white placeholder-slate-500 focus:outline-none focus:ring-0 focus:border-accent transition-colors" 
+                            id="player-username" 
+                            placeholder="Enter your username" 
+                            type="text"
+                        />
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="flex flex-col gap-3">
+                    <button class="btn-highlight w-full py-4 px-6 rounded-xl text-black hover:scale-[1.02] active:scale-[0.98] text-lg font-black uppercase tracking-wide transition-all flex items-center justify-center gap-2 group">
+                        <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">play_arrow</span>
+                        Start Game
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Section: How to Play -->
+        <div class="flex-1 w-full max-w-lg">
+            <div class="relative group perspective-1000">
+                <div class="absolute -inset-4 bg-gradient-to-r from-primary to-accent opacity-30 blur-2xl rounded-3xl group-hover:opacity-50 transition-opacity duration-700"></div>
+                
+                <div class="relative bg-surface-dark border border-surface-border rounded-3xl p-6 shadow-2xl transform transition-transform duration-500 hover:rotate-1">
+                    
+                    <!-- Card Header -->
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                            <span class="material-symbols-outlined text-highlight">auto_stories</span>
+                            Level Introductions
+                        </h3>
+                        <div class="flex gap-1">
+                            <div class="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50"></div>
+                            <div class="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/50"></div>
+                            <div class="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Level Introductions -->
+                    <div class="space-y-4">
+                        <!-- Level 1 -->
+                        <div class="flex items-start gap-4 p-4 rounded-xl bg-background-dark/50 border border-surface-border/50 hover:bg-background-dark hover:border-accent/30 transition-colors">
+                            <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center text-primary border border-primary/30">
+                                <span class="material-symbols-outlined">grid_on</span>
+                            </div>
+                            <div>
+                                <h4 class="text-white font-bold text-sm mb-1">Level 1 – The 5×5 Grid</h4>
+                                <p class="text-slate-400 text-xs leading-relaxed">Your journey begins here. Master the fundamentals of number logic as you navigate the inner square. Learn the basics, understand the patterns, and complete the grid to unlock new challenges.</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Level 2 -->
+                        <div class="flex items-start gap-4 p-4 rounded-xl bg-background-dark/50 border border-surface-border/50 hover:bg-background-dark hover:border-accent/30 transition-colors">
+                            <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center text-accent-glow border border-accent/30">
+                                <span class="material-symbols-outlined">lock_open</span>
+                            </div>
+                            <div>
+                                <h4 class="text-white font-bold text-sm mb-1">Level 2 – Outer Ring Expansion</h4>
+                                <p class="text-slate-400 text-xs leading-relaxed">The grid expands beyond the inner square. Explore the outer ring where new challenges await. Your logic skills will be tested as you navigate the expanded playing field.’s Avoid dead ends.</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Level 3 -->
+                        <div class="flex items-start gap-4 p-4 rounded-xl bg-background-dark/50 border border-surface-border/50 hover:bg-background-dark hover:border-accent/30 transition-colors">
+                            <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-highlight/20 flex items-center justify-center text-highlight border border-highlight/30">
+                                <span class="material-symbols-outlined">expand_content</span>
+                            </div>
+                            <div>
+                                <h4 class="text-white font-bold text-sm mb-1">Level 3 – Inner Ring Reconstruction</h4>
+                                <p class="text-slate-400 text-xs leading-relaxed">The ultimate challenge. With the outer ring fixed, you must rebuild the inner grid from scratch. This is where true mastery is proven—can you reconstruct what was once complete?</p>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

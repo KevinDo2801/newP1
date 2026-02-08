@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Number Logic Game - Level Selection</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "var(--color-purple-500)",
+                        "primary-hover": "var(--color-purple-600)",
+                        "accent": "var(--color-cyan-500)",
+                        "accent-glow": "var(--color-cyan-400)",
+                        "highlight": "var(--color-amber-400)",
+                        "background-light": "#f3f4f6",
+                        "background-dark": "var(--color-bg-navy-900)",
+                        "surface-dark": "var(--color-surface-slate-800)",
+                        "surface-border": "var(--color-border-slate-600)",
+                        "text-primary": "var(--color-text-primary)",
+                        "text-muted": "var(--color-text-muted)",
+                        "text-subtle": "var(--color-text-subtle)",
+                        "text-on-dark": "var(--color-text-on-dark-card)",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "ui-sans-serif", "system-ui", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <style>
+        :root {
+            /* Colors - Neutral */
+            --color-bg-navy-900: #0F172A;
+            --color-bg-navy-850: #10172C;
+            --color-bg-navy-800: #131832;
+            --color-surface-slate-800: #1E293B;
+            --color-surface-slate-750: #172032;
+            --color-surface-indigo-900: #12192E;
+            --color-surface-indigo-850: #1A203B;
+            --color-surface-purple-dark: #262052;
+            --color-border-slate-600: #334155;
+            --color-text-primary: #FFFFFF;
+            --color-text-muted: #94A3B8;
+            --color-text-subtle: #64748B;
+            --color-text-on-dark-card: #E2E8F0;
+            --color-divider: rgba(148, 163, 184, 0.18);
+
+            /* Colors - Accent */
+            --color-cyan-500: #30C2EF;
+            --color-cyan-400: #27CCEE;
+            --color-cyan-glow: #00B0D0;
+            --color-purple-500: #7870F2;
+            --color-purple-600: #6D25AD;
+            --color-purple-card-start: #8857F0;
+            --color-purple-card-mid: #7A3DCD;
+            --color-purple-card-end: #6D25AD;
+            --color-amber-400: #FACC15;
+            --color-amber-500: #EAB308;
+
+            /* Overlays */
+            --overlay-glass-fill: rgba(15, 23, 42, 0.55);
+            --overlay-locked: rgba(15, 23, 42, 0.65);
+            --overlay-shadow-soft: rgba(0, 0, 0, 0.35);
+            --overlay-shadow-deep: rgba(0, 0, 0, 0.55);
+            --overlay-glow-cyan: rgba(0, 176, 208, 0.35);
+            --overlay-glow-purple: rgba(136, 87, 240, 0.28);
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--color-bg-navy-900);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--color-border-slate-600);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--color-purple-500);
+        }
+    </style>
+</head>
+<body class="bg-background-dark text-text-primary font-display overflow-x-hidden min-h-screen flex flex-col relative">
+    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none bg-gradient-to-br from-[#1E1A4D] via-[#2B1161] to-[#131834]">
+        <div class="absolute top-10 left-[10%] w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] animate-pulse"></div>
+        <div class="absolute bottom-10 right-[10%] w-[600px] h-[600px] bg-accent/10 rounded-full blur-[100px]"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full opacity-10 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:40px_40px]"></div>
+    </div>
+    <div class="relative z-10 w-full max-w-7xl mx-auto px-6 py-8 flex flex-col h-full flex-grow">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-12 gap-6">
+            <div class="flex items-center gap-4">
+                <button class="p-3 rounded-xl bg-surface-dark border border-surface-border hover:bg-surface-border/50 transition-colors group">
+                    <span class="material-symbols-outlined text-text-muted group-hover:text-text-primary group-hover:-translate-x-1 transition-transform">arrow_back</span>
+                </button>
+                <div>
+                    <h1 class="text-3xl font-black tracking-tight text-text-primary">Select Level</h1>
+                    <p class="text-text-muted text-sm">Choose your starting point, logic master.</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4 bg-surface-dark/50 px-4 py-2 rounded-full border border-surface-border/50 backdrop-blur-sm">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-highlight">person</span>
+                    <span class="text-sm font-bold text-text-on-dark">Player Name</span>
+                </div>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch justify-center flex-grow mb-8">
+            <!-- Level 1 Card -->
+            <div class="relative group h-full">
+                <div class="absolute -inset-1 bg-gradient-to-b from-primary to-accent opacity-50 blur-lg rounded-3xl group-hover:opacity-75 transition-opacity duration-500"></div>
+                <div class="relative h-full bg-surface-dark border-2 border-primary/50 rounded-3xl p-6 flex flex-col shadow-2xl transform transition-transform duration-300 hover:translate-y-[-4px]">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="bg-primary/20 text-primary border border-primary/30 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+                            Level 01
+                        </div>
+                    </div>
+                    <h2 class="text-3xl font-black text-text-primary mb-2">The 5x5 Grid</h2>
+                    <p class="text-text-muted text-sm mb-6">Learn the basics. Master the logic. Complete the inner square to proceed.</p>
+                    <div class="flex-grow flex items-center justify-center py-6">
+                        <div class="grid grid-cols-5 gap-1 p-2 bg-surface-dark/80 rounded-lg border border-surface-border w-32 h-32 aspect-square">
+                            <div class="bg-primary/80 rounded-sm border border-primary/30"></div>
+                            <div class="bg-primary/80 rounded-sm border border-primary/30"></div>
+                            <div class="bg-primary/80 rounded-sm border border-primary/30"></div>
+                            <div class="bg-primary/80 rounded-sm border border-primary/30"></div>
+                            <div class="bg-primary/80 rounded-sm border border-primary/30"></div>
+                            <div class="bg-primary/80 rounded-sm border border-primary/30"></div>
+                            <div class="bg-surface-border/60 rounded-sm border border-surface-border/40"></div>
+                            <div class="bg-surface-border/60 rounded-sm border border-surface-border/40"></div>
+                            <div class="bg-surface-border/60 rounded-sm border border-surface-border/40"></div>
+                            <div class="bg-primary/80 rounded-sm border border-primary/30"></div>
+                            <div class="bg-primary/80 rounded-sm border border-primary/30"></div>
+                            <div class="bg-surface-border/60 rounded-sm border border-surface-border/40"></div>
+                            <div class="bg-highlight/90 rounded-sm border border-highlight/50 animate-pulse shadow-[0_0_8px_rgba(250,204,21,0.5)]"></div>
+                            <div class="bg-surface-border/60 rounded-sm border border-surface-border/40"></div>
+                            <div class="bg-primary/80 rounded-sm border border-primary/30"></div>
+                            <div class="bg-primary/80 rounded-sm border border-primary/30"></div>
+                            <div class="bg-surface-border/60 rounded-sm border border-surface-border/40"></div>
+                            <div class="bg-surface-border/60 rounded-sm border border-surface-border/40"></div>
+                            <div class="bg-surface-border/60 rounded-sm border border-surface-border/40"></div>
+                            <div class="bg-primary/80 rounded-sm border border-primary/30"></div>
+                            <div class="bg-primary/80 rounded-sm border border-primary/30"></div>
+                            <div class="bg-primary/80 rounded-sm border border-primary/30"></div>
+                            <div class="bg-primary/80 rounded-sm border border-primary/30"></div>
+                            <div class="bg-primary/80 rounded-sm border border-primary/30"></div>
+                            <div class="bg-primary/80 rounded-sm border border-primary/30"></div>
+                        </div>
+                    </div>
+                    <div class="mt-auto pt-6">
+                        <button class="w-full py-4 px-6 rounded-xl bg-highlight text-black hover:bg-amber-500 active:scale-[0.98] text-lg font-black uppercase tracking-wide transition-all shadow-[0_0_20px_rgba(250,204,21,0.4)] flex items-center justify-center gap-2 group/btn">
+                            <span class="material-symbols-outlined group-hover/btn:scale-110 transition-transform">play_circle</span>
+                            Play Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- Level 2 Card -->
+            <div class="relative h-full group opacity-90">
+                <div class="relative h-full bg-surface-dark border border-surface-border rounded-3xl p-6 flex flex-col shadow-xl overflow-hidden">
+                    <div class="absolute inset-0 z-20 bg-background-dark/60 backdrop-blur-[2px] flex flex-col items-center justify-center p-6 text-center">
+                        <div class="w-16 h-16 bg-surface-border/80 rounded-full flex items-center justify-center mb-3 shadow-lg border border-white/10">
+                            <span class="material-symbols-outlined text-3xl text-text-muted">lock</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-text-primary">Locked</h3>
+                        <p class="text-xs text-text-muted mt-1">Complete Level 1 to unlock</p>
+                    </div>
+                    <div class="flex justify-between items-start mb-4 opacity-40">
+                        <div class="bg-surface-border text-text-muted px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+                            Level 02
+                        </div>
+                    </div>
+                    <h2 class="text-2xl font-bold text-text-muted mb-2 opacity-60">Outer Ring Expansion</h2>
+                    <p class="text-text-subtle text-sm mb-6">The grid grows. Challenges await in the outer sectors.</p>
+                    <div class="flex-grow flex items-center justify-center py-6 opacity-30 grayscale">
+                        <div class="relative w-32 h-32">
+                            <div class="absolute inset-2 border-2 border-dashed border-text-subtle rounded-lg flex items-center justify-center">
+                                <span class="text-4xl font-black text-text-subtle">7x7</span>
+                            </div>
+                            <div class="absolute -top-1 -right-1 w-6 h-6 border-t-2 border-r-2 border-text-muted rounded-tr-lg"></div>
+                            <div class="absolute -bottom-1 -left-1 w-6 h-6 border-b-2 border-l-2 border-text-muted rounded-bl-lg"></div>
+                        </div>
+                    </div>
+                    <div class="mt-auto pt-6 opacity-40 pointer-events-none">
+                        <button class="w-full py-4 px-6 rounded-xl bg-surface-border text-text-muted text-lg font-bold uppercase tracking-wide flex items-center justify-center gap-2 cursor-not-allowed">
+                            Locked
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Level 3 Card -->
+            <div class="relative h-full group opacity-90">
+                <div class="relative h-full bg-surface-dark border border-surface-border rounded-3xl p-6 flex flex-col shadow-xl overflow-hidden">
+                    <div class="absolute inset-0 z-20 bg-background-dark/70 backdrop-blur-[2px] flex flex-col items-center justify-center p-6 text-center">
+                        <div class="w-16 h-16 bg-surface-border/80 rounded-full flex items-center justify-center mb-3 shadow-lg border border-white/10">
+                            <span class="material-symbols-outlined text-3xl text-text-muted">lock</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-text-primary">Locked</h3>
+                        <p class="text-xs text-text-muted mt-1">Complete Level 2 to unlock</p>
+                    </div>
+                    <div class="flex justify-between items-start mb-4 opacity-40">
+                        <div class="bg-surface-border text-text-muted px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+                            Level 03
+                        </div>
+                    </div>
+                    <h2 class="text-2xl font-bold text-text-muted mb-2 opacity-60">Inner Ring Reconstruction</h2>
+                    <p class="text-text-subtle text-sm mb-6">Rebuild the inner grid with constraints from the outer ring.</p>
+                    <div class="flex-grow flex items-center justify-center py-6 opacity-30 grayscale">
+                        <div class="relative w-32 h-32 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-7xl text-text-subtle">psychology</span>
+                            <div class="absolute top-0 right-4 animate-pulse">
+                                <span class="material-symbols-outlined text-2xl text-text-subtle">priority_high</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-auto pt-6 opacity-40 pointer-events-none">
+                        <button class="w-full py-4 px-6 rounded-xl bg-surface-border text-text-muted text-lg font-bold uppercase tracking-wide flex items-center justify-center gap-2 cursor-not-allowed">
+                            Locked
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

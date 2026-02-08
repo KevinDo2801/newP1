@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Number Logic Game - Level 2 Expansion</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "var(--color-purple-500)",
+                        "primary-hover": "var(--color-purple-600)",
+                        "accent": "var(--color-cyan-500)",
+                        "accent-glow": "var(--color-cyan-400)",
+                        "highlight": "var(--color-amber-400)",
+                        "background-light": "#f3f4f6",
+                        "background-dark": "var(--color-bg-navy-900)",
+                        "surface-dark": "var(--color-surface-slate-800)",
+                        "surface-border": "var(--color-border-slate-600)",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link href="../frontend/src/global.css" rel="stylesheet" />
+    <style>
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--color-bg-navy-900);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--color-border-slate-600);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--color-purple-500);
+        }
+    </style>
+</head>
+
+<body class="bg-background-dark text-white font-display overflow-x-hidden min-h-screen flex flex-col relative">
+    <div
+        class="fixed inset-0 z-0 overflow-hidden pointer-events-none bg-gradient-to-br from-[#1E1A4D] via-[#2B1161] to-[#131834]">
+        <div
+            class="absolute top-10 left-[10%] w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] animate-pulse">
+        </div>
+        <div class="absolute bottom-10 right-[10%] w-[600px] h-[600px] bg-accent/10 rounded-full blur-[100px]"></div>
+        <div
+            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full opacity-10 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:40px_40px]">
+        </div>
+    </div>
+    <div class="relative z-10 flex flex-1 justify-center py-8 px-4 sm:px-6">
+        <div class="max-w-[1100px] w-full flex flex-col gap-8 relative z-10">
+            <div class="flex flex-wrap justify-between items-end gap-4 border-b border-surface-border/50 pb-6 backdrop-blur-sm rounded-xl p-4"
+                style="background-color: rgba(30, 41, 59, 0.3);">
+                <div class="flex flex-col gap-2">
+                    <div class="flex items-center gap-3">
+                        <a href="selectLevel.html" class="p-2 rounded-lg bg-surface-dark border border-surface-border hover:bg-surface-border/50 transition-colors group">
+                            <span class="material-symbols-outlined text-slate-400 group-hover:text-white group-hover:-translate-x-1 transition-transform">arrow_back</span>
+                        </a>
+                        
+                        <p
+                            class="text-white tracking-tight text-4xl font-black drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
+                            Level 2</p>
+                    </div>
+                    
+                </div>
+                <div class="flex items-center gap-3">
+                    <button
+                        class="flex items-center justify-center gap-2 h-10 px-5 rounded-full bg-highlight text-black hover:bg-yellow-300 hover:scale-105 active:scale-95 text-xs font-bold uppercase tracking-wider transition-all shadow-[0_0_15px_rgba(250,204,21,0.4)]">
+                        
+                            <span class="material-symbols-outlined text-[24px]">save</span>
+                            
+                        SAVE GAME
+                    </button>
+                    <div
+                        class="flex items-center gap-2 text-accent-glow text-sm font-bold bg-surface-dark/80 px-4 py-2 rounded-full border border-accent/30 shadow-inner shadow-black/50">
+                        <span class="material-symbols-outlined text-[20px]">timer</span>
+                        <span class="tabular-nums">02:15</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex flex-col lg:flex-row gap-8 items-start">
+                <div class="flex-1 w-full flex flex-col items-center gap-6">
+                    <div
+                        class="bg-surface-dark/80 backdrop-blur-md border border-surface-border p-3 sm:p-6 rounded-2xl shadow-2xl shadow-primary/20 relative">
+                        <div
+                            class="grid grid-cols-7 gap-1.5 sm:gap-2 w-fit mx-auto relative p-2 rounded-xl bg-[#0f172a] shadow-inner">
+                            <div
+                                class="absolute inset-0 border-2 border-accent-glow rounded-xl shadow-[0_0_20px_rgba(34,211,238,0.4)] pointer-events-none z-0">
+                            </div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-lg bg-surface-dark border border-accent/50 hover:border-accent hover:bg-accent/20 cursor-pointer transition-all z-10 group relative">
+                                <div
+                                    class="absolute inset-0 bg-accent/5 blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                </div>
+                            </div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-lg bg-surface-dark border border-accent/50 hover:border-accent hover:bg-accent/20 cursor-pointer transition-all z-10 group relative">
+                                <div
+                                    class="absolute inset-0 bg-accent/5 blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                </div>
+                            </div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-lg bg-surface-dark border border-accent/50 hover:border-accent hover:bg-accent/20 cursor-pointer transition-all z-10 group relative">
+                                <div
+                                    class="absolute inset-0 bg-accent/5 blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                </div>
+                            </div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-lg bg-surface-dark border border-accent/50 hover:border-accent hover:bg-accent/20 cursor-pointer transition-all z-10 group relative">
+                                <div
+                                    class="absolute inset-0 bg-accent/5 blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                </div>
+                            </div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-lg bg-surface-dark border border-accent/50 hover:border-accent hover:bg-accent/20 cursor-pointer transition-all z-10 group relative">
+                                <div
+                                    class="absolute inset-0 bg-accent/5 blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                </div>
+                            </div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-lg bg-surface-dark border border-accent/50 hover:border-accent hover:bg-accent/20 cursor-pointer transition-all z-10 group relative">
+                                <div
+                                    class="absolute inset-0 bg-accent/5 blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                </div>
+                            </div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-lg bg-surface-dark border border-accent/50 hover:border-accent hover:bg-accent/20 cursor-pointer transition-all z-10 group relative">
+                                <div
+                                    class="absolute inset-0 bg-accent/5 blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                </div>
+                            </div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-lg bg-surface-dark border border-accent/50 hover:border-accent hover:bg-accent/20 cursor-pointer transition-all z-10 group relative">
+                                <div
+                                    class="absolute inset-0 bg-accent/5 blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                </div>
+                            </div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-md bg-primary/20 border border-primary/40 text-white font-bold text-lg shadow-[0_0_10px_rgba(139,92,246,0.2)] z-10">
+                                1</div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-md bg-primary/20 border border-primary/40 text-white font-bold text-lg shadow-[0_0_10px_rgba(139,92,246,0.2)] z-10">
+                                2</div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-md bg-primary/20 border border-primary/40 text-white font-bold text-lg shadow-[0_0_10px_rgba(139,92,246,0.2)] z-10">
+                                3</div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-md bg-primary/20 border border-primary/40 text-white font-bold text-lg shadow-[0_0_10px_rgba(139,92,246,0.2)] z-10">
+                                4</div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-md bg-primary/20 border border-primary/40 text-white font-bold text-lg shadow-[0_0_10px_rgba(139,92,246,0.2)] z-10">
+                                5</div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-lg bg-surface-dark border border-accent/50 hover:border-accent hover:bg-accent/20 cursor-pointer transition-all z-10 group relative">
+                                <div
+                                    class="absolute inset-0 bg-accent/5 blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                </div>
+                            </div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-lg bg-surface-dark border border-accent/50 hover:border-accent hover:bg-accent/20 cursor-pointer transition-all z-10 group relative">
+                                <div
+                                    class="absolute inset-0 bg-accent/5 blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                </div>
+                            </div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-md bg-primary/20 border border-primary/40 text-white font-bold text-lg shadow-[0_0_10px_rgba(139,92,246,0.2)] z-10">
+                                6</div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-md bg-primary/20 border border-primary/40 text-white font-bold text-lg shadow-[0_0_10px_rgba(139,92,246,0.2)] z-10">
+                                7</div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-md bg-primary/20 border border-primary/40 text-white font-bold text-lg shadow-[0_0_10px_rgba(139,92,246,0.2)] z-10">
+                                8</div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-md bg-primary/20 border border-primary/40 text-white font-bold text-lg shadow-[0_0_10px_rgba(139,92,246,0.2)] z-10">
+                                9</div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-md bg-primary/20 border border-primary/40 text-white font-bold text-lg shadow-[0_0_10px_rgba(139,92,246,0.2)] z-10">
+                                10</div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-lg bg-surface-dark border border-accent/50 hover:border-accent hover:bg-accent/20 cursor-pointer transition-all z-10 group relative">
+                                <div
+                                    class="absolute inset-0 bg-accent/5 blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                </div>
+                            </div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-lg bg-surface-dark border border-accent/50 hover:border-accent hover:bg-accent/20 cursor-pointer transition-all z-10 group relative">
+                                <div
+                                    class="absolute inset-0 bg-accent/5 blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                </div>
+                            </div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-md bg-primary/20 border border-primary/40 text-white font-bold text-lg shadow-[0_0_10px_rgba(139,92,246,0.2)] z-10">
+                                11</div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-md bg-primary/20 border border-primary/40 text-white font-bold text-lg shadow-[0_0_10px_rgba(139,92,246,0.2)] z-10">
+                                12</div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-md bg-primary/20 border border-primary/40 text-white font-bold text-lg shadow-[0_0_10px_rgba(139,92,246,0.2)] z-10">
+                                13</div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-md bg-primary/20 border border-primary/40 text-white font-bold text-lg shadow-[0_0_10px_rgba(139,92,246,0.2)] z-10">
+                                14</div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-md bg-primary/20 border border-primary/40 text-white font-bold text-lg shadow-[0_0_10px_rgba(139,92,246,0.2)] z-10">
+                                15</div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-lg bg-surface-dark border border-accent/50 hover:border-accent hover:bg-accent/20 cursor-pointer transition-all z-10 group relative">
+                                <div
+                                    class="absolute inset-0 bg-accent/5 blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                </div>
+                            </div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-lg bg-surface-dark border border-accent/50 hover:border-accent hover:bg-accent/20 cursor-pointer transition-all z-10 group relative">
+                                <div
+                                    class="absolute inset-0 bg-accent/5 blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                </div>
+                            </div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-md bg-primary/20 border border-primary/40 text-white font-bold text-lg shadow-[0_0_10px_rgba(139,92,246,0.2)] z-10">
+                                16</div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-md bg-primary/20 border border-primary/40 text-white font-bold text-lg shadow-[0_0_10px_rgba(139,92,246,0.2)] z-10">
+                                17</div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-md bg-primary/20 border border-primary/40 text-white font-bold text-lg shadow-[0_0_10px_rgba(139,92,246,0.2)] z-10">
+                                18</div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-md bg-primary/20 border border-primary/40 text-white font-bold text-lg shadow-[0_0_10px_rgba(139,92,246,0.2)] z-10">
+                                19</div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-md bg-primary/20 border border-primary/40 text-white font-bold text-lg shadow-[0_0_10px_rgba(139,92,246,0.2)] z-10">
+                                20</div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-lg bg-surface-dark border border-accent/50 hover:border-accent hover:bg-accent/20 cursor-pointer transition-all z-10 group relative">
+                                <div
+                                    class="absolute inset-0 bg-accent/5 blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                </div>
+                            </div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-lg bg-surface-dark border border-accent/50 hover:border-accent hover:bg-accent/20 cursor-pointer transition-all z-10 group relative">
+                                <div
+                                    class="absolute inset-0 bg-accent/5 blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                </div>
+                            </div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-md bg-primary/20 border border-primary/40 text-white font-bold text-lg shadow-[0_0_10px_rgba(139,92,246,0.2)] z-10">
+                                21</div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-md bg-primary/20 border border-primary/40 text-white font-bold text-lg shadow-[0_0_10px_rgba(139,92,246,0.2)] z-10">
+                                22</div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-md bg-primary/20 border border-primary/40 text-white font-bold text-lg shadow-[0_0_10px_rgba(139,92,246,0.2)] z-10">
+                                23</div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-md bg-primary/20 border border-primary/40 text-white font-bold text-lg shadow-[0_0_10px_rgba(139,92,246,0.2)] z-10">
+                                24</div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-md bg-primary/20 border border-primary/40 text-white font-bold text-lg shadow-[0_0_10px_rgba(139,92,246,0.2)] z-10">
+                                25</div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-lg bg-surface-dark border border-accent/50 hover:border-accent hover:bg-accent/20 cursor-pointer transition-all z-10 group relative">
+                                <div
+                                    class="absolute inset-0 bg-accent/5 blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                </div>
+                            </div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-lg bg-surface-dark border border-accent/50 hover:border-accent hover:bg-accent/20 cursor-pointer transition-all z-10 group relative">
+                                <div
+                                    class="absolute inset-0 bg-accent/5 blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                </div>
+                            </div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-lg bg-surface-dark border border-accent/50 hover:border-accent hover:bg-accent/20 cursor-pointer transition-all z-10 group relative">
+                                <div
+                                    class="absolute inset-0 bg-accent/5 blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                </div>
+                            </div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-lg bg-surface-dark border border-accent/50 hover:border-accent hover:bg-accent/20 cursor-pointer transition-all z-10 group relative">
+                                <div
+                                    class="absolute inset-0 bg-accent/5 blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                </div>
+                            </div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-lg bg-surface-dark border border-accent/50 hover:border-accent hover:bg-accent/20 cursor-pointer transition-all z-10 group relative">
+                                <div
+                                    class="absolute inset-0 bg-accent/5 blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                </div>
+                            </div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-lg bg-surface-dark border border-accent/50 hover:border-accent hover:bg-accent/20 cursor-pointer transition-all z-10 group relative">
+                                <div
+                                    class="absolute inset-0 bg-accent/5 blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                </div>
+                            </div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-lg bg-surface-dark border border-accent/50 hover:border-accent hover:bg-accent/20 cursor-pointer transition-all z-10 group relative">
+                                <div
+                                    class="absolute inset-0 bg-accent/5 blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                </div>
+                            </div>
+                            <div
+                                class="w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-lg bg-surface-dark border border-accent/50 hover:border-accent hover:bg-accent/20 cursor-pointer transition-all z-10 group relative">
+                                <div
+                                    class="absolute inset-0 bg-accent/5 blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-4 w-full max-w-[500px]">
+                        <button
+                            class="flex-1 flex items-center justify-center gap-2 h-14 px-4 rounded-full bg-surface-dark border-2 border-primary/40 hover:border-primary hover:bg-primary/20 text-white text-sm font-bold tracking-wide transition-all hover:scale-105 active:scale-95 shadow-[0_4px_0_0_rgba(139,92,246,0.3)] active:shadow-none active:translate-y-[4px]">
+                            <span class="material-symbols-outlined text-[24px]">undo</span>
+                            Undo
+                        </button>
+                      
+                        <div class="relative flex-1 group">
+                            <button
+                                class="w-full flex items-center justify-center gap-2 h-14 px-4 rounded-full bg-accent text-black border-2 border-accent hover:bg-cyan-300 font-black tracking-wide transition-all hover:scale-105 active:scale-95 shadow-[0_4px_0_0_rgba(22,78,99,0.5)] active:shadow-none active:translate-y-[4px]">
+                                <span class="material-symbols-outlined text-[24px]">refresh</span>
+                                Restart
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="w-full lg:w-[320px] flex flex-col gap-5">
+                    <div
+                        class="relative overflow-hidden flex flex-col gap-1 rounded-2xl p-6 bg-gradient-to-br from-primary to-purple-800 border-2 border-primary shadow-[0_0_30px_rgba(139,92,246,0.3)] transition-transform hover:scale-[1.02]">
+                        <div class="absolute -right-4 -top-4 p-4 opacity-20 rotate-12">
+                            <span class="material-symbols-outlined text-[100px] text-white">casino</span>
+                        </div>
+                        <div class="relative z-10 flex justify-between items-start">
+                            <div>
+                                <p class="text-white/80 text-xs font-bold uppercase tracking-wider mb-1">Next Number</p>
+                                <p class="text-white text-7xl font-black leading-none tracking-tight drop-shadow-md">26
+                                </p>
+                            </div>
+                           
+                        </div>
+                        <div
+                            class="mt-4 text-white/90 text-sm font-medium bg-black/20 p-2 rounded-lg backdrop-blur-sm border border-white/10">
+                            Place on the <span class="text-highlight font-bold">Outer Ring</span></div>
+                    </div>
+                   
+                    <div class="mt-2 p-5 rounded-2xl border-2 border-dashed border-primary/30 bg-primary/5">
+                        <div class="flex gap-3">
+                            <div
+                                class="min-w-[24px] h-[24px] rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                                <span class="material-symbols-outlined text-sm">lightbulb</span>
+                            </div>
+                            <p class="text-slate-300 text-xs leading-relaxed font-medium">
+                                <span class="text-accent-glow font-bold">Pro Tip:</span> The outer ring interacts with
+                                the inner grid. Match edges to trigger <span class="text-highlight">combo
+                                    multipliers</span>!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
