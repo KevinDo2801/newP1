@@ -108,7 +108,7 @@ const GamePage = () => {
   const cols = board[0]?.length ?? 5;
   const isL2 = gameState.level === 2;
   const next = gameState.nextNumberToPlace ?? gameState.currentNumber;
-  const max = isL2 ? 49 : 25;
+  const max = isL2 ? 25 : 25; // Level 2: place numbers 2-25 (24 numbers), Level 1: place numbers 1-25
   const pct = Math.round(((next - 1) / max) * 100);
 
   return (
@@ -185,11 +185,15 @@ const GamePage = () => {
                           "w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center",
                           "text-sm font-bold transition-colors",
                           filled
-                            ? last
-                              ? "bg-accent/20 border-2 border-accent text-white"
-                              : "bg-primary/10 border border-primary/25 text-white"
+                            ? outer
+                              ? last
+                                ? "bg-accent/30 border-2 border-accent text-white"
+                                : "bg-accent/15 border border-accent/40 text-white"
+                              : last
+                                ? "bg-primary/20 border-2 border-primary text-white"
+                                : "bg-primary/10 border border-primary/25 text-white"
                             : outer
-                              ? "bg-card border border-accent/20 hover:bg-accent/10 cursor-pointer"
+                              ? "bg-accent/5 border-2 border-accent/30 hover:bg-accent/15 hover:border-accent/50 cursor-pointer"
                               : "bg-card border border-border hover:bg-card-hover hover:border-border-light cursor-pointer",
                           off && !filled ? "opacity-30 cursor-not-allowed" : "",
                         ].join(" ")}
@@ -279,7 +283,7 @@ const GamePage = () => {
                   <p className="text-5xl font-black text-primary leading-none">{next}</p>
                 </div>
                 <div className="px-4 py-2.5 text-xs text-slate-400 text-center">
-                  {isL2 && next >= 26 ? "Place on outer ring" : "Place in adjacent cell"}
+                  {isL2 && next >= 2 ? "Place on outer ring" : "Place in adjacent cell"}
                 </div>
               </div>
             )}
@@ -316,7 +320,7 @@ const GamePage = () => {
                 <li>Diagonal placement gives +1 bonus point</li>
                 <li>Use Undo to rollback any number of moves</li>
                 <li>Use Reset to restart the current board</li>
-                {isL2 && <li className="text-accent">Numbers 26-49 go on the outer ring</li>}
+                {isL2 && <li className="text-accent">Numbers 2-25 go on the outer ring</li>}
               </ul>
             </div>
           </div>

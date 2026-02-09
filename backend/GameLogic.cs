@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace backendAPI
 {
@@ -133,7 +135,8 @@ namespace backendAPI
         {
             if (_level == 1)
                 return currentNumber > 25;
-            return currentNumber > 49;
+            // Level 2: win when all numbers 2-25 are placed (24 numbers)
+            return currentNumber > 25;
         }
 
         public bool PlaceFirstNumber(int row, int col)
@@ -173,20 +176,32 @@ namespace backendAPI
 
         private bool PlaceNumberLevel2(int row, int col)
         {
+            // Basic bounds check
             if (row < 0 || row >= Level2Size || col < 0 || col >= Level2Size)
                 return false;
+            
+            // Cell must be empty
             if (_board7![row, col] != 0)
                 return false;
-            // Numbers 26-49 must be placed on outer ring only
-            if (currentNumber >= 26 && currentNumber <= 49)
+            
+            // Numbers 2-25 must be placed on outer ring only
+            if (currentNumber >= 2 && currentNumber <= 25)
             {
+                // Must be on outer ring
                 if (!IsOuterRingCell(row, col))
                     return false;
+                
+                // Get valid positions based on corresponding inner number
+                var validPositions = GetValidOuterRingPositions(currentNumber);
+                
+                // Check if (row, col) is in valid positions
+                bool isValid = validPositions.Any(p => p.row == row && p.col == col);
+                
+                if (!isValid)
+                    return false;
             }
-            if (!IsAdjacent(row, col))
-                return false;
-            if (IsDiagonal(row, col))
-                score++;
+            
+            // Place the number (no score for Level 2 - score remains unchanged)
             _board7[row, col] = currentNumber;
             lastRow = row;
             lastCol = col;
@@ -194,7 +209,7 @@ namespace backendAPI
             return true;
         }
 
-        /// <summary>Expand to Level 2: keep inner 5x5 (1-25), add outer ring, next number 26.</summary>
+        /// <summary>Expand to Level 2: keep inner 5x5 (1-25), add outer ring, next number 2.</summary>
         public bool ExpandToLevel2()
         {
             if (_level != 1 || currentNumber != 26)
@@ -208,7 +223,7 @@ namespace backendAPI
                 }
             }
             _level = 2;
-            currentNumber = 26;
+            currentNumber = 2; // Start placing numbers 2-25 in outer ring
             lastRow = lastRow + 1;
             lastCol = lastCol + 1;
             return true;
@@ -262,8 +277,106 @@ namespace backendAPI
                 if (lastRow >= 0) break;
             }
             
-            currentNumber = 26;
+            currentNumber = 2; // Start placing numbers 2-25 in outer ring
             score = 0; // Start with score 0 for Level 2
+        }
+
+        /// <summary>Level 2: Find the position of a number (2-25) in the inner 5x5 board. Returns (-1, -1) if not found.</summary>
+        private (int row, int col) FindNumberPositionInInner(int number)
+        {
+            if (_board7 == null || number < 2 || number > 25)
+                return (-1, -1);
+            
+            // Search in inner 5x5 (positions [1,1] to [5,5] in 7x7 board)
+            for (int r = 1; r <= 5; r++)
+            {
+                for (int c = 1; c <= 5; c++)
+                {
+                    if (_board7[r, c] == number)
+                    {
+                        // Convert to inner board coordinates (0-4)
+                        return (r - 1, c - 1);
+                    }
+                }
+            }
+            return (-1, -1);
+        }
+
+        /// <summary>Level 2: Check if inner board position (0-4, 0-4) is on the main diagonal.</summary>
+        private static bool IsOnMainDiagonal(int innerRow, int innerCol)
+        {
+            return innerRow == innerCol;
+        }
+
+        /// <summary>Level 2: Check if inner board position (0-4, 0-4) is on the anti-diagonal.</summary>
+        private static bool IsOnAntiDiagonal(int innerRow, int innerCol)
+        {
+            return innerRow + innerCol == 4;
+        }
+
+        /// <summary>Level 2: Get valid outer ring positions for placing a number (2-25). Returns list of (row, col) positions.</summary>
+        private List<(int row, int col)> GetValidOuterRingPositions(int numberToPlace)
+        {
+            var validPositions = new List<(int row, int col)>();
+            
+            // Number to place (2-25) corresponds to the same number in inner board
+            int innerNumber = numberToPlace;
+            if (innerNumber < 2 || innerNumber > 25)
+                return validPositions;
+            
+            // Find where this number exists in inner 5x5
+            var (innerRow, innerCol) = FindNumberPositionInInner(innerNumber);
+            if (innerRow < 0 || innerCol < 0)
+                return validPositions;
+            
+            // Convert to 7x7 coordinates (inner board is at [1,1] to [5,5])
+            int outerRow = innerRow + 1;  // 1-5
+            int outerCol = innerCol + 1; // 1-5
+            
+            // Valid positions: ends of row and column
+            validPositions.Add((outerRow, 0)); // Left end of row
+            validPositions.Add((outerRow, 6)); // Right end of row
+            validPositions.Add((0, outerCol)); // Top end of column
+            validPositions.Add((6, outerCol)); // Bottom end of column
+            
+            // Diagonal bonus: if on main diagonal (0,0)->(4,4) or anti-diagonal (0,4)->(4,0)
+            if (IsOnMainDiagonal(innerRow, innerCol))
+            {
+                validPositions.Add((0, 0)); // Top-left corner
+                validPositions.Add((6, 6)); // Bottom-right corner
+            }
+            
+            if (IsOnAntiDiagonal(innerRow, innerCol))
+            {
+                validPositions.Add((0, 6)); // Top-right corner
+                validPositions.Add((6, 0)); // Bottom-left corner
+            }
+            
+            // Remove duplicates and filter to only outer ring cells
+            return validPositions
+                .Where(p => IsOuterRingCell(p.row, p.col))
+                .Distinct()
+                .ToList();
+        }
+
+        /// <summary>Level 2: Check if there's a dead end (no valid placement for current number).</summary>
+        public bool IsDeadEnd()
+        {
+            if (_level != 2 || _board7 == null)
+                return false;
+            
+            // Get valid positions for current number
+            var validPositions = GetValidOuterRingPositions(currentNumber);
+            
+            // Check if any valid position is empty
+            foreach (var (row, col) in validPositions)
+            {
+                if (_board7[row, col] == 0)
+                    return false; // At least one valid position is empty
+            }
+            
+            // All valid positions are filled - dead end
+            return true;
         }
 
         /// <summary>Clear board. Level 1: clear all; optionally keep or re-randomize 1. Level 2: clear only outer ring.</summary>
@@ -316,7 +429,7 @@ namespace backendAPI
                     _board7![i, 0] = 0;
                     _board7![i, 6] = 0;
                 }
-                currentNumber = 26;
+                currentNumber = 2; // Reset to start placing numbers 2-25
                 for (int r = 1; r <= 5; r++)
                     for (int c = 1; c <= 5; c++)
                         if (_board7[r, c] == 25)

@@ -116,7 +116,7 @@ const SelectLevelPage = () => {
             </div>
             <h2 className="text-lg font-bold text-white mb-1">Outer Ring Expansion</h2>
             <p className="text-sm text-slate-400 mb-4 flex-1">
-              The board expands with a ring of 24 cells. Place numbers 26-49 on the outer ring.
+              The board expands with a ring of 24 cells. Place numbers 2-25 on the outer ring based on their positions in the inner board.
             </p>
             {level1Completed && (
               <button
