@@ -55,9 +55,9 @@ DESIGN (HTML mockups):
   - design/selectLevel.html Wireframe for level selection
   - design/level123.html    Wireframe for game board
 
-SCRIPT:
-  - start.sh                Bash script to run backend and frontend together;
-                            use ./start.sh (Linux/macOS/Git Bash)
+SCRIPTS:
+  - start.bat               Windows: Double-click to run both backend and frontend
+  - start.sh                Mac/Linux: Run ./start.sh to run both backend and frontend
 
 --------------------------------------------------------------------------------
 2. OS AND LANGUAGE(S) / TOOL(S) / PLATFORM
@@ -93,10 +93,21 @@ B. Build Frontend (optional for production):
    3. npm run build
    Output goes to frontend/dist/ — serve with any static file server
 
-C. Quick Run (development):
-   - Use start.sh:  ./start.sh   (starts both backend and frontend)
-   - Or manually: Terminal 1: cd backend && dotnet run
-                   Terminal 2: cd frontend && npm install && npm run dev
+C. Quick Run (one-click — starts both backend and frontend):
+
+   WINDOWS:
+   - Double-click start.bat
+   - Two windows will open (Backend + Frontend). Open http://localhost:5173
+
+   MAC / LINUX:
+   - Open Terminal, go to project folder
+   - Run:  chmod +x start.sh    (first time only)
+   - Run:  ./start.sh
+   - Press Ctrl+C to stop both. Open http://localhost:5173
+
+   MANUAL (two terminals):
+   Terminal 1: cd backend && dotnet run
+   Terminal 2: cd frontend && npm install && npm run dev
 
 --------------------------------------------------------------------------------
 4. USER STORIES IMPLEMENTED

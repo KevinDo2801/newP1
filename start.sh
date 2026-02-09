@@ -5,6 +5,10 @@
 echo "=== Number Logic Game ==="
 echo ""
 
+# Navigate to script directory (works when run from anywhere)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
 # Kill both processes on exit (Ctrl+C)
 trap 'echo ""; echo "Shutting down..."; kill 0; exit' SIGINT SIGTERM
 
