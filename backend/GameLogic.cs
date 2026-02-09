@@ -214,6 +214,58 @@ namespace backendAPI
             return true;
         }
 
+        /// <summary>Initialize a new Level 2 game with inner 5x5 pre-filled with numbers 1-25 in a valid pattern.</summary>
+        public void InitializeLevel2Game(Random rng)
+        {
+            _level = 2;
+            _board7 = new int[Level2Size, Level2Size];
+            
+            // Fill inner 5x5 with numbers 1-25 using a snake pattern
+            // This ensures all numbers are adjacent (row by row, alternating direction)
+            int num = 1;
+            
+            // Use a simple pattern: fill row by row, alternating direction
+            for (int row = 0; row < Level1Size; row++)
+            {
+                if (row % 2 == 0)
+                {
+                    // Left to right
+                    for (int col = 0; col < Level1Size; col++)
+                    {
+                        _board7[row + 1, col + 1] = num++;
+                    }
+                }
+                else
+                {
+                    // Right to left
+                    for (int col = Level1Size - 1; col >= 0; col--)
+                    {
+                        _board7[row + 1, col + 1] = num++;
+                    }
+                }
+            }
+            
+            // Find the last number (25) position
+            lastRow = -1;
+            lastCol = -1;
+            for (int row = 1; row <= 5; row++)
+            {
+                for (int col = 1; col <= 5; col++)
+                {
+                    if (_board7[row, col] == 25)
+                    {
+                        lastRow = row;
+                        lastCol = col;
+                        break;
+                    }
+                }
+                if (lastRow >= 0) break;
+            }
+            
+            currentNumber = 26;
+            score = 0; // Start with score 0 for Level 2
+        }
+
         /// <summary>Clear board. Level 1: clear all; optionally keep or re-randomize 1. Level 2: clear only outer ring.</summary>
         public void ClearBoard(bool keepOneInPlace, Random? rng = null)
         {

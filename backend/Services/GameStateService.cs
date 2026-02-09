@@ -38,17 +38,39 @@ namespace backendAPI
             {
                 GameId = gameId,
                 PlayerUsername = playerUsername,
-                Level = 1,
+                Level = level,
                 StartTime = DateTime.UtcNow
             };
 
-            session.GameLogic.InitializeNewGame();
-
-            var row = _random.Next(0, 5);
-            var col = _random.Next(0, 5);
-            session.GameLogic.PlaceFirstNumber(row, col);
-            session.FirstNumberRow = row;
-            session.FirstNumberCol = col;
+            if (level == 1)
+            {
+                session.GameLogic.InitializeNewGame();
+                var row = _random.Next(0, 5);
+                var col = _random.Next(0, 5);
+                session.GameLogic.PlaceFirstNumber(row, col);
+                session.FirstNumberRow = row;
+                session.FirstNumberCol = col;
+            }
+            else if (level == 2)
+            {
+                session.GameLogic.InitializeLevel2Game(_random);
+                // For Level 2, first number is already placed (1-25 are pre-filled)
+                // Find position of number 25 (last number in inner grid)
+                var board = session.GameLogic.GetBoard();
+                for (int r = 1; r <= 5; r++)
+                {
+                    for (int c = 1; c <= 5; c++)
+                    {
+                        if (board[r, c] == 25)
+                        {
+                            session.FirstNumberRow = r;
+                            session.FirstNumberCol = c;
+                            break;
+                        }
+                    }
+                    if (session.FirstNumberRow >= 0) break;
+                }
+            }
 
             _sessions[gameId] = session;
             return gameId;
