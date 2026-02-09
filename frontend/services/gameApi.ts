@@ -23,11 +23,11 @@ export interface NewGameResponse {
   gameState: GameState
 }
 
-/** Create a new Level 1 game with number 1 randomly placed */
-export function createNewGame(playerUsername: string): Promise<NewGameResponse> {
+/** Create a new game with number 1 randomly placed */
+export function createNewGame(playerUsername: string, level: number = 1): Promise<NewGameResponse> {
   return request<NewGameResponse>('/new', {
     method: 'POST',
-    body: JSON.stringify({ playerUsername, level: 1 }),
+    body: JSON.stringify({ playerUsername, level }),
   })
 }
 

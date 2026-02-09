@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { createNewGame } from "../services/gameApi";
 
@@ -8,12 +8,29 @@ const SelectLevelPage = () => {
   const username = (location.state as { username?: string })?.username || "Player";
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [level1Completed, setLevel1Completed] = useState(false);
 
-  const handlePlay = async () => {
+  // Check if Level 1 is completed
+  useEffect(() => {
+    const progressKey = `game_progress_${username}`;
+    const savedProgress = localStorage.getItem(progressKey);
+    if (savedProgress) {
+      try {
+        const progress = JSON.parse(savedProgress);
+        if (progress.level1Completed) {
+          setLevel1Completed(true);
+        }
+      } catch (e) {
+        // Invalid JSON, ignore
+      }
+    }
+  }, [username]);
+
+  const handlePlay = async (level: number = 1) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await createNewGame(username);
+      const res = await createNewGame(username, level);
       navigate("/game", {
         state: { username, gameId: res.gameId, gameState: res.gameState },
       });
@@ -68,7 +85,7 @@ const SelectLevelPage = () => {
               Place numbers 1-25 sequentially in adjacent cells. Diagonal placements earn bonus points.
             </p>
             <button
-              onClick={handlePlay}
+              onClick={() => handlePlay(1)}
               disabled={loading}
               className="w-full py-2.5 rounded-lg text-sm font-bold
                          bg-primary text-white hover:bg-primary-dark transition-colors
@@ -78,23 +95,40 @@ const SelectLevelPage = () => {
             </button>
           </div>
 
-          {/* Level 2 - Locked */}
-          <div className="bg-card rounded-xl border border-border p-5 flex flex-col relative overflow-hidden opacity-60">
-            <div className="absolute inset-0 bg-bg/60 flex flex-col items-center justify-center z-10">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-500 mb-1"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              <p className="text-sm font-semibold text-slate-400">Locked</p>
-              <p className="text-xs text-slate-500">Complete Level 1 first</p>
-            </div>
+          {/* Level 2 */}
+          <div className={`bg-card rounded-xl border border-border p-5 flex flex-col relative overflow-hidden ${!level1Completed ? 'opacity-60' : ''}`}>
+            {!level1Completed && (
+              <div className="absolute inset-0 bg-bg/60 flex flex-col items-center justify-center z-10">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-500 mb-1"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <p className="text-sm font-semibold text-slate-400">Locked</p>
+                <p className="text-xs text-slate-500">Complete Level 1 first</p>
+              </div>
+            )}
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-bold text-slate-500 bg-card px-2.5 py-1 rounded-md uppercase tracking-wide border border-border">
+              <span className={`text-xs font-bold px-2.5 py-1 rounded-md uppercase tracking-wide border ${
+                level1Completed 
+                  ? 'text-accent bg-accent/10 border-accent/20' 
+                  : 'text-slate-500 bg-card border-border'
+              }`}>
                 Level 2
               </span>
               <span className="text-xs text-slate-500">7x7 Grid</span>
             </div>
             <h2 className="text-lg font-bold text-white mb-1">Outer Ring Expansion</h2>
-            <p className="text-sm text-slate-400 flex-1">
+            <p className="text-sm text-slate-400 mb-4 flex-1">
               The board expands with a ring of 24 cells. Place numbers 26-49 on the outer ring.
             </p>
+            {level1Completed && (
+              <button
+                onClick={() => handlePlay(2)}
+                disabled={loading}
+                className="w-full py-2.5 rounded-lg text-sm font-bold
+                           bg-accent text-white hover:bg-accent/90 transition-colors
+                           disabled:opacity-50"
+              >
+                {loading ? "Starting..." : "Play Level 2"}
+              </button>
+            )}
           </div>
         </div>
       </div>

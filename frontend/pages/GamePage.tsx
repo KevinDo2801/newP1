@@ -46,6 +46,15 @@ const GamePage = () => {
         if (res.gameState?.hasWon) {
           playWinSound();
           msg(res.gameState.level === 1 ? "Level 1 complete!" : "Level 2 complete!");
+          // Save progress to localStorage when Level 1 is completed
+          if (res.gameState.level === 1) {
+            const progressKey = `game_progress_${username}`;
+            const progress = {
+              level1Completed: true,
+              completedAt: new Date().toISOString()
+            };
+            localStorage.setItem(progressKey, JSON.stringify(progress));
+          }
         } else {
           playValidSound(); // US2: sound on valid move
         }

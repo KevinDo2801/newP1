@@ -2,14 +2,6 @@
 
 A grid-based puzzle game where players place numbers sequentially on a board following strict adjacency rules. Built with a .NET backend API and a React + TypeScript frontend.
 
-## Team Members
-
-| Member | Responsibility |
-|--------|----------------|
-| **Member 1 (Ketchup)** | Core Game Logic — US3, US4, US5, US8 |
-| **Member 2 (Yo)** | UI / Interaction — US1, Buttons (Undo/Reset/Level), UI ↔ GameLogic |
-| **Member 3 (Ketchup's friend)** | Sound & Validation — US2, US6, US7, Validation feedback, README |
-
 ## User Stories Implemented
 
 | US | Description | Status |
