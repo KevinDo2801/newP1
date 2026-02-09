@@ -1,0 +1,164 @@
+================================================================================
+  Number Logic Game — CEN4020 Project 1
+================================================================================
+
+A grid-based puzzle game where players place numbers sequentially on a board
+following strict adjacency rules. Built with a .NET backend API and a React +
+TypeScript frontend.
+
+--------------------------------------------------------------------------------
+1. SOURCE CODE FILES — Description of Each
+--------------------------------------------------------------------------------
+
+BACKEND (C# / .NET):
+  - Program.cs              Application entry point; configures ASP.NET Core Web API,
+                            CORS, Swagger, and registers game services
+  - GameLogic.cs            Core game rules, board state, placement validation,
+                            undo logic, Level 1/2 board expansion
+  - ConsoleUI.cs            Console-based UI for play-from-terminal; used with
+                            GameLogic and SaveLoadManager
+  - SaveLoadManager.cs      Saves/loads game state to/from text file (savegame.txt)
+  - Controllers/GameController.cs   REST API endpoints: new, place, undo, clear,
+                            expand-level2; delegates to GameStateService
+  - Models/GameStateDto.cs  Data transfer objects for game state (board, score,
+                            level, next number, etc.)
+  - Models/GameLogDto.cs    DTO for completed game logs (player, date, duration,
+                            level, score, board)
+  - Services/GameStateService.cs    In-memory game state management; creates
+                            games, processes moves, undo, clear, expand
+  - Services/GameLogService.cs      Persists completed games as JSON files in
+                            backend/logs/
+  - appsettings.json        Default configuration (URLs, logging)
+  - appsettings.Development.json   Development settings
+  - Properties/launchSettings.json  Launch profiles for debugging
+  - backendAPI.csproj       Project file; targets .NET 10, references Swashbuckle
+
+FRONTEND (TypeScript / React):
+  - main.tsx                Entry point; mounts React app to DOM
+  - App.tsx                 Root component; defines routes (/, /select-level, /game)
+  - index.html              HTML shell; loads main.tsx
+  - pages/OnboardPage.tsx   Landing page; player name input and Start Game
+  - pages/SelectLevelPage.tsx   Level selection (Level 1 or 2)
+  - pages/GamePage.tsx      Main game UI; 5x5/7x7 board, controls, sidebar
+  - services/gameApi.ts     API client; calls backend /api/Game/* endpoints
+  - types/index.ts          TypeScript interfaces (GameState, etc.)
+  - utils/sounds.ts         Sound effects via Web Audio API (valid/invalid beep)
+  - global.css              Global styles
+  - index.css               Base styles, Tailwind imports
+  - vite.config.ts          Vite config; dev server, proxy /api to backend
+  - tsconfig.json           TypeScript compiler options
+  - tsconfig.node.json      TS config for Vite config file
+  - package.json            npm dependencies (React, Vite, Tailwind, etc.)
+
+DESIGN (HTML mockups):
+  - design/onboard.html     Wireframe for onboarding page
+  - design/selectLevel.html Wireframe for level selection
+  - design/level123.html    Wireframe for game board
+
+SCRIPT:
+  - start.sh                Bash script to run backend and frontend together;
+                            use ./start.sh (Linux/macOS/Git Bash)
+
+--------------------------------------------------------------------------------
+2. OS AND LANGUAGE(S) / TOOL(S) / PLATFORM
+--------------------------------------------------------------------------------
+
+OS:        Windows 10/11, macOS, or Linux
+Languages: C# (backend), TypeScript (frontend)
+Tools:     .NET 10 SDK, Node.js 18+, npm
+Platform:  ASP.NET Core Web API (backend), React 18 + Vite (frontend)
+Other:     Swashbuckle (Swagger), Tailwind CSS v4, React Router DOM
+
+--------------------------------------------------------------------------------
+3. COMPILATION PROCEDURE TO MAKE EXECUTABLE Proj1
+--------------------------------------------------------------------------------
+
+The application consists of a backend API (Proj1 executable) and a frontend.
+To build and run:
+
+A. Build Backend (Proj1 executable):
+   1. Open terminal/command prompt
+   2. cd backend
+   3. dotnet restore
+   4. dotnet build
+   5. dotnet publish -c Release -o Proj1
+
+   The published executable will be in backend/Proj1/ as:
+   - backendAPI.exe (Windows) or backendAPI (Linux/macOS)
+   Run with: cd Proj1 && ./backendAPI (or backendAPI.exe on Windows)
+
+B. Build Frontend (optional for production):
+   1. cd frontend
+   2. npm install
+   3. npm run build
+   Output goes to frontend/dist/ — serve with any static file server
+
+C. Quick Run (development):
+   - Use start.sh:  ./start.sh   (starts both backend and frontend)
+   - Or manually: Terminal 1: cd backend && dotnet run
+                   Terminal 2: cd frontend && npm install && npm run dev
+
+--------------------------------------------------------------------------------
+4. USER STORIES IMPLEMENTED
+--------------------------------------------------------------------------------
+
+US1  GUI — 5x5 board with number 1 randomly placed; Level 2 adds outer ring  Done
+US2  Sound/beep on valid number placement                                    Done
+US3  Next number auto-generated and displayed (not auto-placed)              Done
+US4  Clear board — keep #1 in place or re-randomize; L2 clears outer ring    Done
+US5  Undo/rollback as many moves as desired from most recent                 Done
+US6  Sound/beep on invalid placement to warn player                          Done
+US7  Log and save completed game (player, date/time, level, score, board)    Done
+US8  Level 2 expansion — 7x7 board (inner 5x5 + 24-cell outer ring)          Done
+
+--------------------------------------------------------------------------------
+5. HOW TO PLAY
+--------------------------------------------------------------------------------
+
+1. Enter your name on the landing page and click Start Game
+2. Select Level 1 to begin
+3. Number 1 is already placed randomly on the 5x5 board
+4. Click any empty adjacent cell (including diagonals) to place the next number
+5. The Next Number is displayed in the sidebar — you cannot skip or reorder
+6. Diagonal placements earn +1 bonus point
+7. Use Undo to rollback any number of recent moves
+8. Use Reset to clear the board (option to keep #1 in place or re-randomize)
+9. Complete all 25 numbers to finish Level 1, then click Expand to Level 2
+10. In Level 2, place numbers 26–49 on the outer ring of the expanded 7x7 board
+
+--------------------------------------------------------------------------------
+6. API ENDPOINTS
+--------------------------------------------------------------------------------
+
+POST  /api/Game/new           Create a new game
+GET   /api/Game/{gameId}      Get current game state
+POST  /api/Game/place         Place the next number at (row, col)
+POST  /api/Game/undo          Undo last N moves
+POST  /api/Game/clear         Clear/reset the board
+POST  /api/Game/expand-level2 Expand to Level 2 after Level 1 win
+
+--------------------------------------------------------------------------------
+7. GAME LOGS (Sample File)
+--------------------------------------------------------------------------------
+
+Completed games are saved as JSON files in backend/logs/ with:
+- Player username
+- Completion date/time
+- Duration (seconds)
+- Level
+- Score (diagonal bonus points)
+- Full board state
+
+A sample completed game log is included: game_log_*.json
+
+--------------------------------------------------------------------------------
+8. TROUBLESHOOTING
+--------------------------------------------------------------------------------
+
+Backend won't start   -> Check port 5000 is free. Verify dotnet --version shows .NET 10
+Frontend won't start  -> Check port 5173 is free. Run: rm -rf node_modules && npm install
+CORS errors           -> Ensure backend is on port 5000. Check Program.cs CORS policy
+No sound              -> Click the page first (browsers require user interaction)
+API errors            -> Check backend is running at http://localhost:5000/swagger
+
+================================================================================
