@@ -36,7 +36,7 @@ namespace backendAPI
                 CompletedAt = DateTime.UtcNow.ToString("O"),
                 Duration = duration,
                 Level = session.Level,
-                Score = session.Level == 1 ? session.GameLogic.GetScore() : null,
+                Score = session.GameLogic.GetScore(),
                 Board = boardArray
             };
 

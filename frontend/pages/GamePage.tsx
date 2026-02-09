@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import type { GameState } from "../types";
 import * as api from "../services/gameApi";
+import { playValidSound, playInvalidSound, playWinSound } from "../utils/sounds";
 
 const GamePage = () => {
   const navigate = useNavigate();
@@ -42,8 +43,14 @@ const GamePage = () => {
       const res = await api.placeNumber(gameId, r, c);
       if (res.gameState) setGameState(res.gameState);
       if (res.success && res.isValid) {
-        if (res.gameState?.hasWon) msg(res.gameState.level === 1 ? "Level 1 complete!" : "Level 2 complete!");
+        if (res.gameState?.hasWon) {
+          playWinSound();
+          msg(res.gameState.level === 1 ? "Level 1 complete!" : "Level 2 complete!");
+        } else {
+          playValidSound(); // US2: sound on valid move
+        }
       } else {
+        playInvalidSound(); // US6: sound on invalid move
         msg(res.errorMessage || "Invalid placement", "err");
       }
     } catch (e) { msg(e instanceof Error ? e.message : "Error", "err"); }
