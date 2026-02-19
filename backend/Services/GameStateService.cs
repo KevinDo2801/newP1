@@ -290,6 +290,7 @@ namespace backendAPI
                     history.Level
                 );
                 session.Level = history.Level;
+                session.GameLogic.ApplyUndoPenalty();
                 undone++;
             }
             return undone > 0;

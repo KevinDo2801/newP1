@@ -249,12 +249,10 @@ namespace backendAPI
             if (!isValid)
                 return false;
 
-            // Bonus points for diagonal moves (Level 1 rule)
-            if (IsDiagonal(row, col))
-                score++;
-
-            // Place the number
+            // Place the number and award point (US10)
             _board7[row, col] = currentNumber;
+            score++; // Award +1 for every placement (same as Level 2)
+
             lastRow = row;
             lastCol = col;
             currentNumber++;
@@ -320,7 +318,7 @@ namespace backendAPI
             lastRow = oneRow >= 0 ? oneRow : 1;
             lastCol = oneCol >= 0 ? oneCol : 1;
             currentNumber = 2;
-            score = 0;
+            // score = 0; // US10: Score is accumulated and can go negative, don't reset to 0
         }
 
         /// <summary>Initialize a new Level 3 game directly.</summary>
@@ -359,7 +357,7 @@ namespace backendAPI
             lastCol = c1;
 
             currentNumber = 2;
-            score = 0;
+            // score = 0; // US10: Score is accumulated and can go negative, don't reset to 0
         }
 
         public bool PlaceNumber(int row, int col)
@@ -415,8 +413,9 @@ namespace backendAPI
                     return false;
             }
             
-            // Place the number (no score for Level 2 - score remains unchanged)
+            // Place the number and award point (US10)
             _board7[row, col] = currentNumber;
+            score++; // Award +1 point for every placement in Level 2
             lastRow = row;
             lastCol = col;
             currentNumber++;
@@ -473,7 +472,7 @@ namespace backendAPI
                 if (lastRow >= 0) break;
             }
             currentNumber = 2;
-            score = 0;
+            // score = 0; // US10: Score is accumulated and can go negative, don't reset to 0
         }
 
         /// <summary>Initialize a new Level 2 game with inner 5x5 pre-filled with numbers 1-25 in a valid pattern.</summary>
@@ -525,7 +524,7 @@ namespace backendAPI
             }
             
             currentNumber = 2; // Start placing numbers 2-25 in outer ring
-            score = 0; // Start with score 0 for Level 2
+            // score = 0; // US10: Score is accumulated and can go negative, don't reset to 0
         }
 
         /// <summary>Level 2: Find the position of a number (2-25) in the inner 5x5 board. Returns (-1, -1) if not found.</summary>
@@ -626,9 +625,32 @@ namespace backendAPI
             return true;
         }
 
+        public void ApplyUndoPenalty()
+        {
+            score--; // US10: -1 point per undo, can go negative
+        }
+
         /// <summary>Clear board. Level 1: clear all; optionally keep or re-randomize 1. Level 2: clear only outer ring.</summary>
         public void ClearBoard(bool keepOneInPlace, Random? rng = null)
         {
+            // US10: Apply penalty for clearing placed numbers
+            // Count how many numbers were placed (excluding the initial "1")
+            int placedCount = 0;
+            if (_level == 1)
+            {
+                for (int r = 0; r < Level1Size; r++)
+                    for (int c = 0; c < Level1Size; c++)
+                        if (_board5[r, c] > 0) placedCount++;
+            }
+            else
+            {
+                // For Level 2 and 3, count numbers placed on the outer ring or inner grid respectively
+                // Based on currentNumber, we can estimate how many were placed in the current session
+                placedCount = currentNumber - 2; // currentNumber starts at 2 for L2/L3 sessions
+                if (placedCount < 0) placedCount = 0;
+            }
+            score -= placedCount;
+
             if (_level == 1)
             {
                 int savedOneRow = -1, savedOneCol = -1;
@@ -647,7 +669,7 @@ namespace backendAPI
                     for (int c = 0; c < Level1Size; c++)
                         _board5[r, c] = 0;
                 currentNumber = 1;
-                score = 0;
+                // score = 0; // US10: Score is accumulated and can go negative, don't reset to 0
                 lastRow = -1;
                 lastCol = -1;
                 if (savedOneRow >= 0 && savedOneCol >= 0)

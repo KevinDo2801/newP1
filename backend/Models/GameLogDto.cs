@@ -15,5 +15,6 @@ namespace backendAPI.Models
         public bool Level1Completed { get; set; }
         public bool Level2Completed { get; set; }
         public bool Level3Completed { get; set; }
+        public int TotalScore { get; set; }
     }
 }

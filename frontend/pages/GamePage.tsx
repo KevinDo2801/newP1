@@ -118,7 +118,8 @@ const GamePage = () => {
   const isL3 = gameState.level === 3;
   const next = gameState.nextNumberToPlace ?? gameState.currentNumber;
   const max = 25; // All levels: place numbers up to 25
-  const pct = Math.round(((next - 1) / max) * 100);
+  const placedCount = gameState.hasWon ? max : Math.max(0, next - 1);
+  const pct = Math.round((placedCount / max) * 100);
 
   return (
     <div className="min-h-screen bg-bg p-4 sm:p-6">
@@ -146,7 +147,11 @@ const GamePage = () => {
             <span className="text-xs text-slate-400 bg-card border border-border px-2.5 py-1 rounded-lg">
               {username}
             </span>
-            <span className="text-xs font-bold text-amber bg-amber/10 border border-amber/20 px-2.5 py-1 rounded-lg">
+            <span className={`text-xs font-bold px-2.5 py-1 rounded-lg ${
+              gameState.score >= 0 
+                ? 'text-amber bg-amber/10 border border-amber/20'
+                : 'text-red-400 bg-red-400/10 border border-red-400/20'
+            }`}>
               {gameState.score} pts
             </span>
           </div>
@@ -162,7 +167,7 @@ const GamePage = () => {
             <div className="w-full max-w-sm">
               <div className="flex justify-between text-xs text-slate-500 mb-1">
                 <span>Progress</span>
-                <span>{next - 1} / {max}</span>
+                <span>{placedCount} / {max}</span>
               </div>
               <div className="w-full h-2 rounded-full bg-card border border-border overflow-hidden">
                 <div
@@ -385,11 +390,10 @@ const GamePage = () => {
             <div className="bg-card border border-border rounded-xl p-4">
               <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide mb-2">Rules</p>
               <ul className="space-y-1.5 text-xs text-slate-400 leading-relaxed">
-                <li>Place numbers in order in adjacent cells</li>
-                <li>Adjacent = any of 8 surrounding cells</li>
-                <li>Diagonal placement gives +1 bonus point</li>
-                <li>Use Undo to rollback any number of moves</li>
-                <li>Use Reset to restart the current board</li>
+                <li>Level 1: +1 point for diagonal moves only</li>
+                <li>Level 2 & 3: +1 point for every number placed</li>
+                <li>Undo/Reset/Clear: -1 point per number rolled back</li>
+                <li>Diagonal placement gives +1 bonus point (L1 only)</li>
                 {isL2 && <li className="text-accent">Numbers 2-25 go on the outer ring</li>}
                 {isL3 && (
                   <>

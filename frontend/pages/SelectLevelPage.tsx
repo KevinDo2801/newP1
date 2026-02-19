@@ -12,6 +12,7 @@ const SelectLevelPage = () => {
   const [level1Completed, setLevel1Completed] = useState(false);
   const [level2Completed, setLevel2Completed] = useState(false);
   const [level3Completed, setLevel3Completed] = useState(false);
+  const [totalScore, setTotalScore] = useState(0);
 
   const needsRedirect = !stateUsername || !String(stateUsername).trim();
 
@@ -27,6 +28,7 @@ const SelectLevelPage = () => {
         setLevel1Completed(p.level1Completed);
         setLevel2Completed(p.level2Completed);
         setLevel3Completed(p.level3Completed);
+        setTotalScore(p.totalScore);
       })
       .catch(() => { /* ignore */ });
   }, [username]);
@@ -124,9 +126,14 @@ const SelectLevelPage = () => {
             <h1 className="text-xl font-bold text-white">Select Level</h1>
           </div>
 
-          <div className="px-3 py-1.5 rounded-lg bg-card border border-border text-sm">
-            <span className="text-slate-400">Player: </span>
-            <span className="text-white font-semibold">{username}</span>
+          <div className="flex items-center gap-2">
+            <div className="px-3 py-1.5 rounded-lg bg-card border border-border text-sm">
+              <span className="text-slate-400">Player: </span>
+              <span className="text-white font-semibold">{username}</span>
+            </div>
+            <div className="px-3 py-1.5 rounded-lg bg-amber/10 border border-amber/20 text-sm">
+              <span className="text-amber font-bold">{totalScore} pts</span>
+            </div>
           </div>
         </div>
 

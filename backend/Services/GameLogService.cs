@@ -15,10 +15,11 @@ namespace backendAPI
             }
         }
 
-        /// <summary>Returns which levels the player has completed (from logs).</summary>
+        /// <summary>Returns which levels the player has completed and total score (from logs).</summary>
         public ProgressDto GetProgress(string username)
         {
             var completed = new HashSet<int>();
+            int totalScore = 0;
             var files = Directory.GetFiles(_logsDirectory, "game_log_*.json");
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
@@ -31,8 +32,11 @@ namespace backendAPI
                     if (log == null) continue;
                     if (!string.Equals(log.PlayerUsername?.Trim(), username?.Trim(), StringComparison.OrdinalIgnoreCase))
                         continue;
+                    
                     if (log.Level >= 1 && log.Level <= 3)
                         completed.Add(log.Level);
+                    
+                    totalScore += log.Score ?? 0;
                 }
                 catch { /* skip invalid files */ }
             }
@@ -41,7 +45,8 @@ namespace backendAPI
             {
                 Level1Completed = completed.Contains(1),
                 Level2Completed = completed.Contains(2),
-                Level3Completed = completed.Contains(3)
+                Level3Completed = completed.Contains(3),
+                TotalScore = totalScore
             };
         }
 

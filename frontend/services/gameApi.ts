@@ -51,6 +51,7 @@ export interface ProgressResponse {
   level1Completed: boolean
   level2Completed: boolean
   level3Completed: boolean
+  totalScore: number
 }
 
 /** Get completed levels for a player (from logs). */
