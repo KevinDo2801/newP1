@@ -136,6 +136,9 @@ namespace backendAPI
             if (_level == 1)
                 return currentNumber > 25;
             // Level 2: win when all numbers 2-25 are placed (24 numbers)
+            if (_level == 2)
+                return currentNumber > 25;
+            // Level 3: win when all numbers 2-25 are placed in inner grid
             return currentNumber > 25;
         }
 
@@ -150,11 +153,170 @@ namespace backendAPI
             return true;
         }
 
+        /// <summary>Level 3: Check if (row,col) is on the main diagonal or anti-diagonal of the 7x7 board.</summary>
+        public static bool IsOnDiagonal7x7(int row, int col)
+        {
+            return row == col || row + col == 6;
+        }
+
+        /// <summary>Level 3: Check if (row,col) is one of the four yellow corners of the 7x7 board.</summary>
+        public static bool IsYellowCorner(int row, int col)
+        {
+            return (row == 0 || row == 6) && (col == 0 || col == 6);
+        }
+
+        /// <summary>Level 3: Get valid inner 5x5 positions for a number based on outer ring mapping and diagonal rules.</summary>
+        private List<(int row, int col)> GetValidInnerPositionsLevel3(int number)
+        {
+            var validPositions = new List<(int row, int col)>();
+            if (_board7 == null) return validPositions;
+
+            // 1. Find all positions of 'number' on the outer ring
+            var outerPositions = new List<(int row, int col)>();
+            for (int r = 0; r < Level2Size; r++)
+            {
+                for (int c = 0; c < Level2Size; c++)
+                {
+                    if (IsOuterRingCell(r, c) && _board7[r, c] == number)
+                    {
+                        outerPositions.Add((r, c));
+                    }
+                }
+            }
+
+            // 2. Map each outer ring position to its corresponding inner cell
+            foreach (var (r, c) in outerPositions)
+            {
+                int mappedRow = -1;
+                int mappedCol = -1;
+
+                if (r == 0) mappedRow = 1;      // Top edge
+                else if (r == 6) mappedRow = 5; // Bottom edge
+                else mappedRow = r;             // Left/Right side
+
+                if (c == 0) mappedCol = 1;      // Left edge
+                else if (c == 6) mappedCol = 5; // Right edge
+                else mappedCol = c;             // Top/Bottom side
+
+                // Additional Diagonal Rule: If number is in a yellow corner, 
+                // the mapped inner cell must be on a diagonal.
+                if (IsYellowCorner(r, c))
+                {
+                    if (IsOnDiagonal7x7(mappedRow, mappedCol))
+                    {
+                        validPositions.Add((mappedRow, mappedCol));
+                    }
+                }
+                else
+                {
+                    validPositions.Add((mappedRow, mappedCol));
+                }
+            }
+
+            return validPositions.Distinct().ToList();
+        }
+
+        private bool PlaceNumberLevel3(int row, int col)
+        {
+            // 1. Must be in inner 5x5 grid
+            if (!IsInnerCell(row, col))
+                return false;
+
+            // 2. Cell must be empty
+            if (_board7![row, col] != 0)
+                return false;
+
+            // 3. Intersection & Diagonal Rules
+            var validPositions = GetValidInnerPositionsLevel3(currentNumber);
+            bool isValid = validPositions.Any(p => p.row == row && p.col == col);
+
+            if (!isValid)
+                return false;
+
+            // Place the number
+            _board7[row, col] = currentNumber;
+            lastRow = row;
+            lastCol = col;
+            currentNumber++;
+            return true;
+        }
+
+        public bool ExpandToLevel3()
+        {
+            if (_level != 2 || currentNumber <= 25) // Level 2 win condition is currentNumber > 25
+                return false;
+
+            // Keep outer ring, erase inner 5x5 except the cell with number 1
+            int oneRow = -1, oneCol = -1;
+            for (int r = 1; r <= 5; r++)
+            {
+                for (int c = 1; c <= 5; c++)
+                {
+                    if (_board7![r, c] == 1)
+                    {
+                        oneRow = r;
+                        oneCol = c;
+                    }
+                    else
+                    {
+                        _board7[r, c] = 0; // Erase all except 1
+                    }
+                }
+            }
+
+            _level = 3;
+            currentNumber = 2; // Start placing numbers 2-25 back in inner grid
+            lastRow = oneRow;
+            lastCol = oneCol;
+            return true;
+        }
+
+        /// <summary>Initialize a new Level 3 game directly.</summary>
+        public void InitializeLevel3Game(Random rng)
+        {
+            _level = 3;
+            _board7 = new int[Level2Size, Level2Size];
+
+            // 1. Fill outer ring with numbers 2-25 in a valid pattern (using same snake-like logic as Level 2 init but for outer ring)
+            // For simplicity in direct init, we'll just use a fixed valid-ish pattern or reuse Level 2's logic if possible.
+            // Actually, let's just reuse the snake pattern but only for the outer ring cells to ensure 2-25 are present.
+            int[] outerNumbers = Enumerable.Range(2, 24).ToArray();
+            // Shuffle them to make it interesting
+            for (int i = outerNumbers.Length - 1; i > 0; i--)
+            {
+                int j = rng.Next(i + 1);
+                (outerNumbers[i], outerNumbers[j]) = (outerNumbers[j], outerNumbers[i]);
+            }
+
+            var outerCells = new List<(int r, int c)>();
+            for (int i = 0; i < 7; i++) { outerCells.Add((0, i)); } // Top
+            for (int i = 1; i < 7; i++) { outerCells.Add((i, 6)); } // Right
+            for (int i = 5; i >= 0; i--) { outerCells.Add((6, i)); } // Bottom
+            for (int i = 5; i >= 1; i--) { outerCells.Add((i, 0)); } // Left
+
+            for (int i = 0; i < 24; i++)
+            {
+                _board7[outerCells[i].r, outerCells[i].c] = outerNumbers[i];
+            }
+
+            // 2. Place number 1 randomly in inner 5x5
+            int r1 = rng.Next(1, 6);
+            int c1 = rng.Next(1, 6);
+            _board7[r1, c1] = 1;
+            lastRow = r1;
+            lastCol = c1;
+
+            currentNumber = 2;
+            score = 0;
+        }
+
         public bool PlaceNumber(int row, int col)
         {
             if (_level == 1)
                 return PlaceNumberLevel1(row, col);
-            return PlaceNumberLevel2(row, col);
+            if (_level == 2)
+                return PlaceNumberLevel2(row, col);
+            return PlaceNumberLevel3(row, col);
         }
 
         private bool PlaceNumberLevel1(int row, int col)
@@ -420,7 +582,7 @@ namespace backendAPI
                     currentNumber = 2;
                 }
             }
-            else
+            else if (_level == 2)
             {
                 for (int i = 0; i < Level2Size; i++)
                 {
@@ -438,6 +600,29 @@ namespace backendAPI
                             lastCol = c;
                             return;
                         }
+            }
+            else if (_level == 3)
+            {
+                // Clear inner 5x5 except number 1
+                int oneRow = -1, oneCol = -1;
+                for (int r = 1; r <= 5; r++)
+                {
+                    for (int c = 1; c <= 5; c++)
+                    {
+                        if (_board7![r, c] == 1)
+                        {
+                            oneRow = r;
+                            oneCol = c;
+                        }
+                        else
+                        {
+                            _board7[r, c] = 0;
+                        }
+                    }
+                }
+                currentNumber = 2;
+                lastRow = oneRow;
+                lastCol = oneCol;
             }
         }
     }

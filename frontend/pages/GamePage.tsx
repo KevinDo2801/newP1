@@ -45,16 +45,22 @@ const GamePage = () => {
       if (res.success && res.isValid) {
         if (res.gameState?.hasWon) {
           playWinSound();
-          msg(res.gameState.level === 1 ? "Level 1 complete!" : "Level 2 complete!");
-          // Save progress to localStorage when Level 1 is completed
-          if (res.gameState.level === 1) {
-            const progressKey = `game_progress_${username}`;
-            const progress = {
-              level1Completed: true,
-              completedAt: new Date().toISOString()
-            };
-            localStorage.setItem(progressKey, JSON.stringify(progress));
+          const level = res.gameState.level;
+          msg(`Level ${level} complete!`);
+          
+          // Save progress to localStorage
+          const progressKey = `game_progress_${username}`;
+          const savedProgress = localStorage.getItem(progressKey);
+          let progress = savedProgress ? JSON.parse(savedProgress) : {};
+          
+          if (level === 1) {
+            progress.level1Completed = true;
+          } else if (level === 2) {
+            progress.level2Completed = true;
           }
+          
+          progress.completedAt = new Date().toISOString();
+          localStorage.setItem(progressKey, JSON.stringify(progress));
         } else {
           playValidSound(); // US2: sound on valid move
         }
@@ -102,13 +108,28 @@ const GamePage = () => {
     finally { setBusy(false); }
   }, [gameId, gameState, busy]);
 
+  // --- Expand to Level 3 ---
+  const handleExpandLevel3 = useCallback(async () => {
+    if (!gameId || busy || !gameState || gameState.level !== 2 || !gameState.hasWon) return;
+    setBusy(true);
+    try {
+      const res = await api.expandToLevel3(gameId);
+      if (res.gameState) { 
+        setGameState(res.gameState); 
+        msg("Welcome to Level 3! Solve the puzzle using the outer ring numbers."); 
+      }
+    } catch { msg("Expand failed", "err"); }
+    finally { setBusy(false); }
+  }, [gameId, gameState, busy]);
+
   if (!gameState || !gameId) return null;
 
   const board = gameState.board;
   const cols = board[0]?.length ?? 5;
   const isL2 = gameState.level === 2;
+  const isL3 = gameState.level === 3;
   const next = gameState.nextNumberToPlace ?? gameState.currentNumber;
-  const max = isL2 ? 25 : 25; // Level 2: place numbers 2-25 (24 numbers), Level 1: place numbers 1-25
+  const max = 25; // All levels: place numbers up to 25
   const pct = Math.round(((next - 1) / max) * 100);
 
   return (
@@ -172,15 +193,18 @@ const GamePage = () => {
                 {board.map((row, r) =>
                   row.map((val, c) => {
                     const filled = val !== 0;
-                    const outer = isL2 && (r === 0 || r === 6 || c === 0 || c === 6);
+                    const outer = (isL2 || isL3) && (r === 0 || r === 6 || c === 0 || c === 6);
                     const last = gameState.lastRow === r && gameState.lastCol === c;
                     const off = busy || filled || gameState.hasWon;
+
+                    // Level 3 special styling: outer ring is read-only reference
+                    const l3Outer = isL3 && outer;
 
                     return (
                       <button
                         key={`${r}-${c}`}
                         onClick={() => handleCell(r, c)}
-                        disabled={off}
+                        disabled={off || l3Outer}
                         className={[
                           "w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center",
                           "text-sm font-bold transition-colors",
@@ -188,14 +212,18 @@ const GamePage = () => {
                             ? outer
                               ? last
                                 ? "bg-accent/30 border-2 border-accent text-white"
-                                : "bg-accent/15 border border-accent/40 text-white"
+                                : isL3 
+                                  ? "bg-slate-700/40 border border-slate-600 text-slate-400" // Muted for L3 reference
+                                  : "bg-accent/15 border border-accent/40 text-white"
                               : last
                                 ? "bg-primary/20 border-2 border-primary text-white"
                                 : "bg-primary/10 border border-primary/25 text-white"
                             : outer
-                              ? "bg-accent/5 border-2 border-accent/30 hover:bg-accent/15 hover:border-accent/50 cursor-pointer"
+                              ? isL3
+                                ? "bg-slate-800/20 border border-slate-700 opacity-20" // Empty outer in L3
+                                : "bg-accent/5 border-2 border-accent/30 hover:bg-accent/15 hover:border-accent/50 cursor-pointer"
                               : "bg-card border border-border hover:bg-card-hover hover:border-border-light cursor-pointer",
-                          off && !filled ? "opacity-30 cursor-not-allowed" : "",
+                          (off || l3Outer) && !filled ? "opacity-30 cursor-not-allowed" : "",
                         ].join(" ")}
                       >
                         {filled ? val : ""}
@@ -241,9 +269,9 @@ const GamePage = () => {
                 {showReset && (
                   <div className="absolute top-full mt-2 left-0 w-56 z-20 bg-card border border-border rounded-lg p-3 shadow-lg">
                     <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide mb-2">
-                      {isL2 ? "Clear outer ring" : "Restart options"}
+                      {isL2 || isL3 ? "Clear board" : "Restart options"}
                     </p>
-                    {!isL2 && (
+                    {!isL2 && !isL3 && (
                       <label className="flex items-center gap-2 text-sm text-slate-300 mb-3 cursor-pointer">
                         <input
                           type="checkbox" checked={keepOne}
@@ -254,6 +282,7 @@ const GamePage = () => {
                       </label>
                     )}
                     {isL2 && <p className="text-xs text-slate-500 mb-3">Inner 5x5 stays. Only ring cleared.</p>}
+                    {isL3 && <p className="text-xs text-slate-500 mb-3">Outer ring stays. Inner 5x5 cleared (except #1).</p>}
                     <div className="flex gap-2">
                       <button onClick={handleClear} disabled={busy}
                         className="flex-1 py-1.5 rounded-md bg-amber text-black text-xs font-bold hover:bg-amber-dark transition-colors disabled:opacity-40">
@@ -283,7 +312,7 @@ const GamePage = () => {
                   <p className="text-5xl font-black text-primary leading-none">{next}</p>
                 </div>
                 <div className="px-4 py-2.5 text-xs text-slate-400 text-center">
-                  {isL2 && next >= 2 ? "Place on outer ring" : "Place in adjacent cell"}
+                  {isL2 ? "Place on outer ring" : isL3 ? "Place at intersection" : "Place in adjacent cell"}
                 </div>
               </div>
             )}
@@ -307,7 +336,23 @@ const GamePage = () => {
             {gameState.level === 2 && gameState.hasWon && (
               <div className="bg-card border border-accent/20 rounded-xl p-5 text-center">
                 <p className="text-accent text-lg font-bold mb-1">Level 2 Complete!</p>
-                <p className="text-slate-400 text-sm">Final Score: {gameState.score} pts</p>
+                <p className="text-slate-400 text-sm mb-4">Final Score: {gameState.score} pts</p>
+                <button
+                  onClick={handleExpandLevel3}
+                  disabled={busy}
+                  className="w-full py-2.5 rounded-lg text-sm font-bold bg-accent text-white hover:bg-accent/90 transition-colors disabled:opacity-50"
+                >
+                  Expand to Level 3
+                </button>
+              </div>
+            )}
+
+            {/* Level 3 won */}
+            {gameState.level === 3 && gameState.hasWon && (
+              <div className="bg-card border border-amber/20 rounded-xl p-5 text-center">
+                <p className="text-amber text-lg font-bold mb-1">Level 3 Complete!</p>
+                <p className="text-slate-400 text-sm mb-2">You are a Number Logic Master!</p>
+                <p className="text-slate-500 text-xs">Final Score: {gameState.score} pts</p>
               </div>
             )}
 
@@ -321,6 +366,12 @@ const GamePage = () => {
                 <li>Use Undo to rollback any number of moves</li>
                 <li>Use Reset to restart the current board</li>
                 {isL2 && <li className="text-accent">Numbers 2-25 go on the outer ring</li>}
+                {isL3 && (
+                  <>
+                    <li className="text-amber">Place numbers at the unique intersection</li>
+                    <li className="text-amber">Yellow corners must be on diagonals</li>
+                  </>
+                )}
               </ul>
             </div>
           </div>

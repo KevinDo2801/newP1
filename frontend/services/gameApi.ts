@@ -79,3 +79,11 @@ export function expandToLevel2(gameId: string): Promise<{ gameState: GameState }
     body: JSON.stringify({ gameId }),
   })
 }
+
+/** US9: Expand to Level 3 after Level 2 is won */
+export function expandToLevel3(gameId: string): Promise<{ gameState: GameState }> {
+  return request<{ gameState: GameState }>('/expand-level3', {
+    method: 'POST',
+    body: JSON.stringify({ gameId }),
+  })
+}

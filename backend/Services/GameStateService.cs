@@ -31,7 +31,7 @@ namespace backendAPI
 
         public string CreateNewGame(string playerUsername, int level)
         {
-            if (level != 1 && level != 2)
+            if (level < 1 || level > 3)
                 level = 1;
             var gameId = Guid.NewGuid().ToString();
             var session = new GameSession
@@ -71,6 +71,25 @@ namespace backendAPI
                     if (session.FirstNumberRow >= 0) break;
                 }
             }
+            else if (level == 3)
+            {
+                session.GameLogic.InitializeLevel3Game(_random);
+                // Find position of number 1
+                var board = session.GameLogic.GetBoard();
+                for (int r = 1; r <= 5; r++)
+                {
+                    for (int c = 1; c <= 5; c++)
+                    {
+                        if (board[r, c] == 1)
+                        {
+                            session.FirstNumberRow = r;
+                            session.FirstNumberCol = c;
+                            break;
+                        }
+                    }
+                    if (session.FirstNumberRow >= 0) break;
+                }
+            }
 
             _sessions[gameId] = session;
             return gameId;
@@ -85,6 +104,19 @@ namespace backendAPI
             if (!session.GameLogic.ExpandToLevel2())
                 return false;
             session.Level = 2;
+            session.MoveHistory.Clear();
+            return true;
+        }
+
+        /// <summary>Expand current game to Level 3 after Level 2 is won. Inner 5x5 erased except number 1, outer ring kept.</summary>
+        public bool ExpandToLevel3(string gameId)
+        {
+            var session = GetSession(gameId);
+            if (session == null || session.Level != 2 || !session.GameLogic.HasWon())
+                return false;
+            if (!session.GameLogic.ExpandToLevel3())
+                return false;
+            session.Level = 3;
             session.MoveHistory.Clear();
             return true;
         }

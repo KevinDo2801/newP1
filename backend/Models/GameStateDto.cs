@@ -55,4 +55,9 @@ namespace backendAPI.Models
     {
         public string GameId { get; set; } = string.Empty;
     }
+
+    public class ExpandLevel3Request
+    {
+        public string GameId { get; set; } = string.Empty;
+    }
 }

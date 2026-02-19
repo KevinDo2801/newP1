@@ -102,5 +102,19 @@ namespace backendAPI.Controllers
             var gameState = _gameStateService.GetGameState(request.GameId);
             return Ok(new { GameState = gameState });
         }
+
+        /// <summary>Expand to Level 3 after Level 2 is won. Inner 5x5 erased except 1, outer ring kept. US9.</summary>
+        [HttpPost("expand-level3")]
+        public IActionResult ExpandToLevel3([FromBody] ExpandLevel3Request request)
+        {
+            var success = _gameStateService.ExpandToLevel3(request.GameId);
+            if (!success)
+            {
+                return BadRequest(new { Error = "Cannot expand to Level 3 (Level 2 must be completed first)" });
+            }
+
+            var gameState = _gameStateService.GetGameState(request.GameId);
+            return Ok(new { GameState = gameState });
+        }
     }
 }
