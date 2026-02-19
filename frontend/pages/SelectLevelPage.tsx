@@ -13,13 +13,13 @@ const SelectLevelPage = () => {
   const [level2Completed, setLevel2Completed] = useState(false);
   const [level3Completed, setLevel3Completed] = useState(false);
 
-  // Redirect to player name page if user hasn't entered a username
+  const needsRedirect = !stateUsername || !String(stateUsername).trim();
+
   useEffect(() => {
-    if (!stateUsername || !stateUsername.trim()) {
+    if (needsRedirect) {
       navigate("/", { replace: true });
     }
-  }, [stateUsername, navigate]);
-
+  }, [needsRedirect, navigate]);
   // Load progress from backend logs
   useEffect(() => {
     getProgress(username)
@@ -30,6 +30,8 @@ const SelectLevelPage = () => {
       })
       .catch(() => { /* ignore */ });
   }, [username]);
+
+  if (needsRedirect) return null;
 
   const getCompletedLevel1Board = async (user: string): Promise<number[][] | undefined> => {
     try {
