@@ -23,16 +23,44 @@ export interface NewGameResponse {
   gameState: GameState
 }
 
-/** Create a new game with number 1 randomly placed */
-export function createNewGame(playerUsername: string, level: number = 1): Promise<NewGameResponse> {
+/** Create a new game with number 1 randomly placed.
+ * When level=2, pass level1Board (5x5) to use completed Level 1 result as inner grid.
+ * When level=3, pass level2Board (7x7) to use completed Level 2 outer ring. */
+export function createNewGame(
+  playerUsername: string,
+  level: number = 1,
+  level1Board?: number[][],
+  level2Board?: number[][]
+): Promise<NewGameResponse> {
   return request<NewGameResponse>('/new', {
     method: 'POST',
-    body: JSON.stringify({ playerUsername, level }),
+    body: JSON.stringify({
+      playerUsername,
+      level,
+      level1Board: level1Board ?? undefined,
+      level2Board: level2Board ?? undefined,
+    }),
   })
 }
 
 export function getGameState(gameId: string): Promise<GameState> {
   return request<GameState>(`/${gameId}`)
+}
+
+export interface ProgressResponse {
+  level1Completed: boolean
+  level2Completed: boolean
+  level3Completed: boolean
+}
+
+/** Get completed levels for a player (from logs). */
+export function getProgress(username: string): Promise<ProgressResponse> {
+  return request<ProgressResponse>(`/progress/${encodeURIComponent(username)}`)
+}
+
+/** Get completed game state for viewing (from logs). */
+export function getCompletedGame(username: string, level: number): Promise<GameState> {
+  return request<GameState>(`/completed/${encodeURIComponent(username)}/${level}`)
 }
 
 export interface PlaceNumberResponse {

@@ -19,9 +19,27 @@ namespace backendAPI.Controllers
         [HttpPost("new")]
         public IActionResult CreateNewGame([FromBody] NewGameRequest request)
         {
-            var gameId = _gameStateService.CreateNewGame(request.PlayerUsername, request.Level);
+            var gameId = _gameStateService.CreateNewGame(request.PlayerUsername, request.Level, request.Level1Board, request.Level2Board);
             var gameState = _gameStateService.GetGameState(gameId);
             return Ok(new { GameId = gameId, GameState = gameState });
+        }
+
+        [HttpGet("progress/{username}")]
+        public IActionResult GetProgress(string username)
+        {
+            var progress = _gameLogService.GetProgress(username);
+            return Ok(progress);
+        }
+
+        [HttpGet("completed/{username}/{level:int}")]
+        public IActionResult GetCompletedGame(string username, int level)
+        {
+            if (level < 1 || level > 3)
+                return BadRequest(new { Error = "Level must be 1, 2, or 3" });
+            var gameState = _gameLogService.GetCompletedGame(username, level);
+            if (gameState == null)
+                return NotFound(new { Error = "No completed game found" });
+            return Ok(gameState);
         }
 
         [HttpGet("{gameId}")]

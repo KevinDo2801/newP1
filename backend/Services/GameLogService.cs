@@ -15,6 +15,92 @@ namespace backendAPI
             }
         }
 
+        /// <summary>Returns which levels the player has completed (from logs).</summary>
+        public ProgressDto GetProgress(string username)
+        {
+            var completed = new HashSet<int>();
+            var files = Directory.GetFiles(_logsDirectory, "game_log_*.json");
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+
+            foreach (var file in files)
+            {
+                try
+                {
+                    var json = File.ReadAllText(file);
+                    var log = JsonSerializer.Deserialize<GameLogDto>(json, options);
+                    if (log == null) continue;
+                    if (!string.Equals(log.PlayerUsername?.Trim(), username?.Trim(), StringComparison.OrdinalIgnoreCase))
+                        continue;
+                    if (log.Level >= 1 && log.Level <= 3)
+                        completed.Add(log.Level);
+                }
+                catch { /* skip invalid files */ }
+            }
+
+            return new ProgressDto
+            {
+                Level1Completed = completed.Contains(1),
+                Level2Completed = completed.Contains(2),
+                Level3Completed = completed.Contains(3)
+            };
+        }
+
+        /// <summary>Returns the most recent completed game state for viewing.</summary>
+        public GameStateDto? GetCompletedGame(string username, int level)
+        {
+            var files = Directory.GetFiles(_logsDirectory, "game_log_*.json");
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            GameLogDto? best = null;
+            DateTime? bestTime = null;
+
+            foreach (var file in files)
+            {
+                try
+                {
+                    var json = File.ReadAllText(file);
+                    var log = JsonSerializer.Deserialize<GameLogDto>(json, options);
+                    if (log == null || log.Level != level) continue;
+                    if (!string.Equals(log.PlayerUsername?.Trim(), username?.Trim(), StringComparison.OrdinalIgnoreCase))
+                        continue;
+                    if (!DateTime.TryParse(log.CompletedAt, out var dt)) continue;
+                    if (bestTime == null || dt > bestTime)
+                    {
+                        best = log;
+                        bestTime = dt;
+                    }
+                }
+                catch { /* skip */ }
+            }
+
+            if (best == null) return null;
+
+            (int row, int col) pos25 = (-1, -1);
+            var board = best.Board;
+            for (int r = 0; r < board.Length; r++)
+            {
+                for (int c = 0; c < board[r].Length; c++)
+                {
+                    if (board[r][c] == 25) { pos25 = (r, c); break; }
+                }
+                if (pos25.row >= 0) break;
+            }
+
+            return new GameStateDto
+            {
+                PlayerUsername = best.PlayerUsername ?? string.Empty,
+                Level = best.Level,
+                Board = best.Board ?? Array.Empty<int[]>(),
+                CurrentNumber = 25,
+                NextNumberToPlace = 25,
+                StartTime = best.CompletedAt,
+                Score = best.Score ?? 0,
+                LastRow = pos25.row >= 0 ? pos25.row : null,
+                LastCol = pos25.col >= 0 ? pos25.col : null,
+                IsValid = true,
+                HasWon = true
+            };
+        }
+
         public void LogGameCompletion(GameStateService.GameSession session, int duration)
         {
             var board = session.GameLogic.GetBoard();

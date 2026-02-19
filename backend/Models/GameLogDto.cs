@@ -9,4 +9,11 @@ namespace backendAPI.Models
         public int? Score { get; set; }
         public int[][] Board { get; set; } = Array.Empty<int[]>();
     }
+
+    public class ProgressDto
+    {
+        public bool Level1Completed { get; set; }
+        public bool Level2Completed { get; set; }
+        public bool Level3Completed { get; set; }
+    }
 }

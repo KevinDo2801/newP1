@@ -8,10 +8,11 @@ const GamePage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const navState = location.state as {
-    username?: string; gameId?: string; gameState?: GameState;
+    username?: string; gameId?: string; gameState?: GameState; isViewingCompleted?: boolean;
   } | null;
 
   const [gameId] = useState<string | null>(navState?.gameId ?? null);
+  const isViewingCompleted = navState?.isViewingCompleted ?? false;
   const [gameState, setGameState] = useState<GameState | null>(navState?.gameState ?? null);
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState<{ text: string; type: "ok" | "err" } | null>(null);
@@ -22,8 +23,9 @@ const GamePage = () => {
   const username = navState?.username ?? gameState?.playerUsername ?? "Player";
 
   useEffect(() => {
-    if (!gameId || !gameState) navigate("/select-level", { state: { username } });
-  }, [gameId, gameState, navigate, username]);
+    if (!gameState) navigate("/select-level", { state: { username } });
+    else if (!gameId && !isViewingCompleted) navigate("/select-level", { state: { username } });
+  }, [gameId, gameState, isViewingCompleted, navigate, username]);
 
   // auto-dismiss toast
   useEffect(() => {
@@ -45,22 +47,8 @@ const GamePage = () => {
       if (res.success && res.isValid) {
         if (res.gameState?.hasWon) {
           playWinSound();
-          const level = res.gameState.level;
-          msg(`Level ${level} complete!`);
-          
-          // Save progress to localStorage
-          const progressKey = `game_progress_${username}`;
-          const savedProgress = localStorage.getItem(progressKey);
-          let progress = savedProgress ? JSON.parse(savedProgress) : {};
-          
-          if (level === 1) {
-            progress.level1Completed = true;
-          } else if (level === 2) {
-            progress.level2Completed = true;
-          }
-          
-          progress.completedAt = new Date().toISOString();
-          localStorage.setItem(progressKey, JSON.stringify(progress));
+          msg(`Level ${res.gameState.level} complete!`);
+          // Progress is saved in backend logs; frontend loads from API
         } else {
           playValidSound(); // US2: sound on valid move
         }
@@ -122,7 +110,7 @@ const GamePage = () => {
     finally { setBusy(false); }
   }, [gameId, gameState, busy]);
 
-  if (!gameState || !gameId) return null;
+  if (!gameState || (!gameId && !isViewingCompleted)) return null;
 
   const board = gameState.board;
   const cols = board[0]?.length ?? 5;
@@ -234,7 +222,8 @@ const GamePage = () => {
               </div>
             </div>
 
-            {/* Controls */}
+            {/* Controls - hide when viewing completed */}
+            {!isViewingCompleted && (
             <div className="flex flex-wrap items-center justify-center gap-2">
               {/* Undo */}
               <button
@@ -297,6 +286,7 @@ const GamePage = () => {
                 )}
               </div>
             </div>
+            )}
           </div>
 
           {/* Right sidebar */}
@@ -322,13 +312,25 @@ const GamePage = () => {
               <div className="bg-card border border-green/20 rounded-xl p-5 text-center">
                 <p className="text-green text-lg font-bold mb-1">Level 1 Complete!</p>
                 <p className="text-slate-400 text-sm mb-4">Score: {gameState.score} pts</p>
-                <button
-                  onClick={handleExpand}
-                  disabled={busy}
-                  className="w-full py-2.5 rounded-lg text-sm font-bold bg-primary text-white hover:bg-primary-dark transition-colors disabled:opacity-50"
-                >
-                  Expand to Level 2
-                </button>
+                {isViewingCompleted ? (
+                  <div className="flex flex-col gap-2">
+                    <p className="text-xs text-slate-500">Viewing your completed result</p>
+                    <button
+                      onClick={() => navigate("/select-level", { state: { username, playAgainLevel: 1 } })}
+                      className="w-full py-2.5 rounded-lg text-sm font-bold bg-primary text-white hover:bg-primary-dark transition-colors"
+                    >
+                      Play Again
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleExpand}
+                    disabled={busy}
+                    className="w-full py-2.5 rounded-lg text-sm font-bold bg-primary text-white hover:bg-primary-dark transition-colors disabled:opacity-50"
+                  >
+                    Expand to Level 2
+                  </button>
+                )}
               </div>
             )}
 
@@ -337,13 +339,25 @@ const GamePage = () => {
               <div className="bg-card border border-accent/20 rounded-xl p-5 text-center">
                 <p className="text-accent text-lg font-bold mb-1">Level 2 Complete!</p>
                 <p className="text-slate-400 text-sm mb-4">Final Score: {gameState.score} pts</p>
-                <button
-                  onClick={handleExpandLevel3}
-                  disabled={busy}
-                  className="w-full py-2.5 rounded-lg text-sm font-bold bg-accent text-white hover:bg-accent/90 transition-colors disabled:opacity-50"
-                >
-                  Expand to Level 3
-                </button>
+                {isViewingCompleted ? (
+                  <div className="flex flex-col gap-2">
+                    <p className="text-xs text-slate-500">Viewing your completed result</p>
+                    <button
+                      onClick={() => navigate("/select-level", { state: { username, playAgainLevel: 2 } })}
+                      className="w-full py-2.5 rounded-lg text-sm font-bold bg-accent text-white hover:bg-accent/90 transition-colors"
+                    >
+                      Play Again
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleExpandLevel3}
+                    disabled={busy}
+                    className="w-full py-2.5 rounded-lg text-sm font-bold bg-accent text-white hover:bg-accent/90 transition-colors disabled:opacity-50"
+                  >
+                    Expand to Level 3
+                  </button>
+                )}
               </div>
             )}
 
@@ -352,7 +366,18 @@ const GamePage = () => {
               <div className="bg-card border border-amber/20 rounded-xl p-5 text-center">
                 <p className="text-amber text-lg font-bold mb-1">Level 3 Complete!</p>
                 <p className="text-slate-400 text-sm mb-2">You are a Number Logic Master!</p>
-                <p className="text-slate-500 text-xs">Final Score: {gameState.score} pts</p>
+                <p className="text-slate-500 text-xs mb-4">Final Score: {gameState.score} pts</p>
+                {isViewingCompleted && (
+                  <div className="flex flex-col gap-2">
+                    <p className="text-xs text-slate-500">Viewing your completed result</p>
+                    <button
+                      onClick={() => navigate("/select-level", { state: { username, playAgainLevel: 3 } })}
+                      className="w-full py-2.5 rounded-lg text-sm font-bold bg-amber text-black hover:bg-amber/90 transition-colors"
+                    >
+                      Play Again
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 

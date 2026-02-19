@@ -29,7 +29,7 @@ namespace backendAPI
             public int LastCol { get; set; }
         }
 
-        public string CreateNewGame(string playerUsername, int level)
+        public string CreateNewGame(string playerUsername, int level, int[][]? level1Board = null, int[][]? level2Board = null)
         {
             if (level < 1 || level > 3)
                 level = 1;
@@ -53,7 +53,11 @@ namespace backendAPI
             }
             else if (level == 2)
             {
-                session.GameLogic.InitializeLevel2Game(_random);
+                var inner5x5 = TryParseLevel1Board(level1Board);
+                if (inner5x5 != null)
+                    session.GameLogic.InitializeLevel2FromInnerBoard(inner5x5);
+                else
+                    session.GameLogic.InitializeLevel2Game(_random);
                 // For Level 2, first number is already placed (1-25 are pre-filled)
                 // Find position of number 25 (last number in inner grid)
                 var board = session.GameLogic.GetBoard();
@@ -73,7 +77,11 @@ namespace backendAPI
             }
             else if (level == 3)
             {
-                session.GameLogic.InitializeLevel3Game(_random);
+                var board7x7 = TryParseLevel2Board(level2Board);
+                if (board7x7 != null)
+                    session.GameLogic.InitializeLevel3FromLevel2Board(board7x7);
+                else
+                    session.GameLogic.InitializeLevel3Game(_random);
                 // Find position of number 1
                 var board = session.GameLogic.GetBoard();
                 for (int r = 1; r <= 5; r++)
@@ -119,6 +127,57 @@ namespace backendAPI
             session.Level = 3;
             session.MoveHistory.Clear();
             return true;
+        }
+
+        /// <summary>Parse and validate Level 1 board (5x5, numbers 1-25). Returns null if invalid.</summary>
+        private static int[,]? TryParseLevel1Board(int[][]? arr)
+        {
+            if (arr == null || arr.Length != 5) return null;
+            for (int i = 0; i < 5; i++)
+                if (arr[i] == null || arr[i].Length != 5) return null;
+            var board = new int[5, 5];
+            var seen = new HashSet<int>();
+            for (int r = 0; r < 5; r++)
+            {
+                for (int c = 0; c < 5; c++)
+                {
+                    int v = arr[r][c];
+                    if (v < 1 || v > 25 || !seen.Add(v))
+                        return null;
+                    board[r, c] = v;
+                }
+            }
+            return seen.Count == 25 ? board : null;
+        }
+
+        /// <summary>Parse and validate Level 2 completed board (7x7). Outer ring has 2-25, inner 5x5 has 1-25. Returns null if invalid.</summary>
+        private static int[,]? TryParseLevel2Board(int[][]? arr)
+        {
+            if (arr == null || arr.Length != 7) return null;
+            for (int i = 0; i < 7; i++)
+                if (arr[i] == null || arr[i].Length != 7) return null;
+            var board = new int[7, 7];
+            var outerSeen = new HashSet<int>();
+            bool hasOne = false;
+            for (int r = 0; r < 7; r++)
+            {
+                for (int c = 0; c < 7; c++)
+                {
+                    int v = arr[r][c];
+                    bool isOuter = r == 0 || r == 6 || c == 0 || c == 6;
+                    if (isOuter)
+                    {
+                        if (v < 2 || v > 25 || !outerSeen.Add(v)) return null;
+                    }
+                    else
+                    {
+                        if (v == 1) hasOne = true;
+                        // Inner can have 1-25 (completed L2) or just 1
+                    }
+                    board[r, c] = v;
+                }
+            }
+            return outerSeen.Count == 24 && hasOne ? board : null;
         }
 
         public GameSession? GetSession(string gameId)

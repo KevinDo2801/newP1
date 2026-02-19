@@ -133,13 +133,21 @@ namespace backendAPI
 
         public bool HasWon()
         {
+            // Level 1: win when all numbers 1-25 are placed
             if (_level == 1)
                 return currentNumber > 25;
-            // Level 2: win when all numbers 2-25 are placed (24 numbers)
+            
+            // Level 2: win when all numbers 2-25 are placed in the outer ring (24 numbers total)
+            // Note: currentNumber starts at 2 and increments after each placement.
+            // So when 25 is placed, currentNumber becomes 26.
             if (_level == 2)
                 return currentNumber > 25;
-            // Level 3: win when all numbers 2-25 are placed in inner grid
-            return currentNumber > 25;
+            
+            // Level 3: win when all numbers 2-25 are placed in the inner grid
+            if (_level == 3)
+                return currentNumber > 25;
+
+            return false;
         }
 
         public bool PlaceFirstNumber(int row, int col)
@@ -243,7 +251,7 @@ namespace backendAPI
 
         public bool ExpandToLevel3()
         {
-            if (_level != 2 || currentNumber <= 25) // Level 2 win condition is currentNumber > 25
+            if (_level != 2 || !HasWon())
                 return false;
 
             // Keep outer ring, erase inner 5x5 except the cell with number 1
@@ -269,6 +277,38 @@ namespace backendAPI
             lastRow = oneRow;
             lastCol = oneCol;
             return true;
+        }
+
+        /// <summary>Initialize Level 3 from a completed Level 2 board (7x7). Keeps outer ring, clears inner 5x5 except 1.</summary>
+        public void InitializeLevel3FromLevel2Board(int[,] board7x7)
+        {
+            if (board7x7.GetLength(0) != Level2Size || board7x7.GetLength(1) != Level2Size)
+                return;
+            _level = 3;
+            _board7 = new int[Level2Size, Level2Size];
+            // Copy outer ring (row 0, 6 and col 0, 6)
+            for (int i = 0; i < 7; i++) _board7[0, i] = board7x7[0, i];
+            for (int i = 0; i < 7; i++) _board7[6, i] = board7x7[6, i];
+            for (int i = 1; i < 6; i++) _board7[i, 0] = board7x7[i, 0];
+            for (int i = 1; i < 6; i++) _board7[i, 6] = board7x7[i, 6];
+            // Find 1 in inner 5x5 and keep it, clear rest
+            int oneRow = -1, oneCol = -1;
+            for (int r = 1; r <= 5; r++)
+            {
+                for (int c = 1; c <= 5; c++)
+                {
+                    if (board7x7[r, c] == 1)
+                    {
+                        oneRow = r;
+                        oneCol = c;
+                    }
+                    _board7[r, c] = board7x7[r, c] == 1 ? 1 : 0;
+                }
+            }
+            lastRow = oneRow >= 0 ? oneRow : 1;
+            lastCol = oneCol >= 0 ? oneCol : 1;
+            currentNumber = 2;
+            score = 0;
         }
 
         /// <summary>Initialize a new Level 3 game directly.</summary>
@@ -374,7 +414,7 @@ namespace backendAPI
         /// <summary>Expand to Level 2: keep inner 5x5 (1-25), add outer ring, next number 2.</summary>
         public bool ExpandToLevel2()
         {
-            if (_level != 1 || currentNumber != 26)
+            if (_level != 1 || !HasWon())
                 return false;
             _board7 = new int[Level2Size, Level2Size];
             for (int r = 0; r < Level1Size; r++)
@@ -389,6 +429,39 @@ namespace backendAPI
             lastRow = lastRow + 1;
             lastCol = lastCol + 1;
             return true;
+        }
+
+        /// <summary>Initialize Level 2 using a provided inner 5x5 (from completed Level 1).</summary>
+        public void InitializeLevel2FromInnerBoard(int[,] inner5x5)
+        {
+            if (inner5x5.GetLength(0) != Level1Size || inner5x5.GetLength(1) != Level1Size)
+                return;
+            _level = 2;
+            _board7 = new int[Level2Size, Level2Size];
+            for (int r = 0; r < Level1Size; r++)
+            {
+                for (int c = 0; c < Level1Size; c++)
+                {
+                    _board7[r + 1, c + 1] = inner5x5[r, c];
+                }
+            }
+            lastRow = -1;
+            lastCol = -1;
+            for (int r = 1; r <= 5; r++)
+            {
+                for (int c = 1; c <= 5; c++)
+                {
+                    if (_board7[r, c] == 25)
+                    {
+                        lastRow = r;
+                        lastCol = c;
+                        break;
+                    }
+                }
+                if (lastRow >= 0) break;
+            }
+            currentNumber = 2;
+            score = 0;
         }
 
         /// <summary>Initialize a new Level 2 game with inner 5x5 pre-filled with numbers 1-25 in a valid pattern.</summary>

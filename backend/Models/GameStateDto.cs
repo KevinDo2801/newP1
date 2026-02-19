@@ -35,6 +35,10 @@ namespace backendAPI.Models
     {
         public string PlayerUsername { get; set; } = string.Empty;
         public int Level { get; set; } = 1;
+        /// <summary>Optional. When Level=2, use this 5x5 board as inner grid (from completed Level 1).</summary>
+        public int[][]? Level1Board { get; set; }
+        /// <summary>Optional. When Level=3, use this 7x7 board - outer ring kept, inner 5x5 cleared except 1 (from completed Level 2).</summary>
+        public int[][]? Level2Board { get; set; }
     }
 
     public class UndoRequest

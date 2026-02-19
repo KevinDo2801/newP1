@@ -1,40 +1,101 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { createNewGame } from "../services/gameApi";
+import { createNewGame, getProgress, getCompletedGame } from "../services/gameApi";
 
 const SelectLevelPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const username = (location.state as { username?: string })?.username || "Player";
+  const stateUsername = (location.state as { username?: string })?.username;
+  const username = (stateUsername?.trim() || "Player");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [level1Completed, setLevel1Completed] = useState(false);
   const [level2Completed, setLevel2Completed] = useState(false);
+  const [level3Completed, setLevel3Completed] = useState(false);
 
-  // Check if Level 1/2 are completed
+  // Redirect to player name page if user hasn't entered a username
   useEffect(() => {
-    const progressKey = `game_progress_${username}`;
-    const savedProgress = localStorage.getItem(progressKey);
-    if (savedProgress) {
-      try {
-        const progress = JSON.parse(savedProgress);
-        if (progress.level1Completed) {
-          setLevel1Completed(true);
-        }
-        if (progress.level2Completed) {
-          setLevel2Completed(true);
-        }
-      } catch (e) {
-        // Invalid JSON, ignore
-      }
+    if (!stateUsername || !stateUsername.trim()) {
+      navigate("/", { replace: true });
     }
+  }, [stateUsername, navigate]);
+
+  // Load progress from backend logs
+  useEffect(() => {
+    getProgress(username)
+      .then((p) => {
+        setLevel1Completed(p.level1Completed);
+        setLevel2Completed(p.level2Completed);
+        setLevel3Completed(p.level3Completed);
+      })
+      .catch(() => { /* ignore */ });
   }, [username]);
 
+  const getCompletedLevel1Board = async (user: string): Promise<number[][] | undefined> => {
+    try {
+      const state = await getCompletedGame(user, 1);
+      const board = state?.board;
+      if (!Array.isArray(board) || board.length !== 5) return undefined;
+      for (const row of board) if (!Array.isArray(row) || row.length !== 5) return undefined;
+      return board;
+    } catch { return undefined; }
+  };
+
+  const getCompletedLevel2Board = async (user: string): Promise<number[][] | undefined> => {
+    try {
+      const state = await getCompletedGame(user, 2);
+      const board = state?.board;
+      if (!Array.isArray(board) || board.length !== 7) return undefined;
+      for (const row of board) if (!Array.isArray(row) || row.length !== 7) return undefined;
+      return board;
+    } catch { return undefined; }
+  };
+
+  // Handle "Play Again" from completed view
+  useEffect(() => {
+    const playAgainLevel = (location.state as { playAgainLevel?: number })?.playAgainLevel;
+    if (playAgainLevel == null || loading) return;
+    const run = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const level1Board = playAgainLevel === 2 ? await getCompletedLevel1Board(username) : undefined;
+        const level2Board = playAgainLevel === 3 ? await getCompletedLevel2Board(username) : undefined;
+        const res = await createNewGame(username, playAgainLevel, level1Board, level2Board);
+        navigate("/game", {
+          state: { username, gameId: res.gameId, gameState: res.gameState },
+          replace: true,
+        });
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Failed to create game");
+      } finally {
+        setLoading(false);
+      }
+    };
+    run();
+  }, [username, navigate, loading]);
+
   const handlePlay = async (level: number = 1) => {
+    const isCompleted = level === 1 ? level1Completed : level === 2 ? level2Completed : level3Completed;
+
+    if (isCompleted) {
+      try {
+        const gameState = await getCompletedGame(username, level);
+        navigate("/game", {
+          state: { username, gameState, isViewingCompleted: true },
+        });
+        return;
+      } catch {
+        // Fall through to create new game if fetch fails
+      }
+    }
+
     setLoading(true);
     setError(null);
     try {
-      const res = await createNewGame(username, level);
+      const level1Board = level === 2 ? await getCompletedLevel1Board(username) : undefined;
+      const level2Board = level === 3 ? await getCompletedLevel2Board(username) : undefined;
+      const res = await createNewGame(username, level, level1Board, level2Board);
       navigate("/game", {
         state: { username, gameId: res.gameId, gameState: res.gameState },
       });
@@ -79,8 +140,12 @@ const SelectLevelPage = () => {
           {/* Level 1 */}
           <div className="bg-card rounded-xl border border-border p-5 flex flex-col">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-md uppercase tracking-wide">
-                Level 1
+              <span className={`text-xs font-bold px-2.5 py-1 rounded-md uppercase tracking-wide ${
+                level1Completed
+                  ? 'text-accent bg-accent/10 border border-accent/20'
+                  : 'text-primary bg-primary/10'
+              }`}>
+                Level 1 {level1Completed && '✓'}
               </span>
               <span className="text-xs text-slate-500">5x5 Grid</span>
             </div>
@@ -95,7 +160,7 @@ const SelectLevelPage = () => {
                          bg-primary text-white hover:bg-primary-dark transition-colors
                          disabled:opacity-50"
             >
-              {loading ? "Starting..." : "Play Now"}
+              {loading ? "Starting..." : level1Completed ? "View Result" : "Play Now"}
             </button>
           </div>
 
@@ -110,11 +175,13 @@ const SelectLevelPage = () => {
             )}
             <div className="flex items-center justify-between mb-3">
               <span className={`text-xs font-bold px-2.5 py-1 rounded-md uppercase tracking-wide border ${
-                level1Completed 
-                  ? 'text-accent bg-accent/10 border-accent/20' 
-                  : 'text-slate-500 bg-card border-border'
+                level2Completed
+                  ? 'text-accent bg-accent/10 border-accent/20'
+                  : level1Completed
+                    ? 'text-accent bg-accent/10 border-accent/20'
+                    : 'text-slate-500 bg-card border-border'
               }`}>
-                Level 2
+                Level 2 {level2Completed && '✓'}
               </span>
               <span className="text-xs text-slate-500">7x7 Grid</span>
             </div>
@@ -130,7 +197,7 @@ const SelectLevelPage = () => {
                            bg-accent text-white hover:bg-accent/90 transition-colors
                            disabled:opacity-50"
               >
-                {loading ? "Starting..." : "Play Level 2"}
+                {loading ? "Starting..." : level2Completed ? "View Result" : "Play Level 2"}
               </button>
             )}
           </div>
@@ -146,11 +213,13 @@ const SelectLevelPage = () => {
             )}
             <div className="flex items-center justify-between mb-3">
               <span className={`text-xs font-bold px-2.5 py-1 rounded-md uppercase tracking-wide border ${
-                level2Completed 
-                  ? 'text-amber bg-amber/10 border-amber/20' 
-                  : 'text-slate-500 bg-card border-border'
+                level3Completed
+                  ? 'text-amber bg-amber/10 border-amber/20'
+                  : level2Completed
+                    ? 'text-amber bg-amber/10 border-amber/20'
+                    : 'text-slate-500 bg-card border-border'
               }`}>
-                Level 3
+                Level 3 {level3Completed && '✓'}
               </span>
               <span className="text-xs text-slate-500">7x7 Grid</span>
             </div>
@@ -166,7 +235,7 @@ const SelectLevelPage = () => {
                            bg-amber text-black hover:bg-amber/90 transition-colors
                            disabled:opacity-50"
               >
-                {loading ? "Starting..." : "Play Level 3"}
+                {loading ? "Starting..." : level3Completed ? "View Result" : "Play Level 3"}
               </button>
             )}
           </div>
