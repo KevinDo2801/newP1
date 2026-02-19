@@ -84,4 +84,6 @@ $RECYCLE.BIN/
 # *.log.json
 backend/logs/
 
+.cursor/
+
 
