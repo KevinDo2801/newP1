@@ -75,7 +75,8 @@ namespace backendAPI
             int loadedCurrentNumber,
             int loadedScore,
             int loadedLastRow,
-            int loadedLastCol
+            int loadedLastCol,
+            int? loadedLevel = null
         )
         {
             int rows = loadedBoard.GetLength(0);
@@ -88,7 +89,7 @@ namespace backendAPI
             }
             else if (rows == Level2Size && cols == Level2Size)
             {
-                _level = 2;
+                _level = loadedLevel.HasValue ? loadedLevel.Value : 2;
                 _board7 = (int[,])loadedBoard.Clone();
             }
             currentNumber = loadedCurrentNumber;

@@ -27,6 +27,7 @@ namespace backendAPI
             public int Score { get; set; }
             public int LastRow { get; set; }
             public int LastCol { get; set; }
+            public int Level { get; set; }
         }
 
         public string CreateNewGame(string playerUsername, int level, int[][]? level1Board = null, int[][]? level2Board = null)
@@ -243,7 +244,8 @@ namespace backendAPI
                 CurrentNumber = session.GameLogic.GetCurrentNumber(),
                 Score = session.GameLogic.GetScore(),
                 LastRow = session.GameLogic.GetLastRow(),
-                LastCol = session.GameLogic.GetLastCol()
+                LastCol = session.GameLogic.GetLastCol(),
+                Level = session.GameLogic.GetLevel()
             };
 
             bool success = session.GameLogic.PlaceNumber(row, col);
@@ -284,8 +286,10 @@ namespace backendAPI
                     history.CurrentNumber,
                     history.Score,
                     history.LastRow,
-                    history.LastCol
+                    history.LastCol,
+                    history.Level
                 );
+                session.Level = history.Level;
                 undone++;
             }
             return undone > 0;
