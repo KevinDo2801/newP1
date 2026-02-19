@@ -85,5 +85,6 @@ $RECYCLE.BIN/
 backend/logs/
 
 .cursor/
+.backend/logs/
 
 

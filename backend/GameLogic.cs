@@ -193,32 +193,33 @@ namespace backendAPI
                 }
             }
 
-            // 2. Map each outer ring position to its corresponding inner cell
+            // 2. Map each outer ring position to its corresponding inner cells (entire row or column)
             foreach (var (r, c) in outerPositions)
             {
-                int mappedRow = -1;
-                int mappedCol = -1;
-
-                if (r == 0) mappedRow = 1;      // Top edge
-                else if (r == 6) mappedRow = 5; // Bottom edge
-                else mappedRow = r;             // Left/Right side
-
-                if (c == 0) mappedCol = 1;      // Left edge
-                else if (c == 6) mappedCol = 5; // Right edge
-                else mappedCol = c;             // Top/Bottom side
-
-                // Additional Diagonal Rule: If number is in a yellow corner, 
-                // the mapped inner cell must be on a diagonal.
                 if (IsYellowCorner(r, c))
                 {
-                    if (IsOnDiagonal7x7(mappedRow, mappedCol))
+                    // Corners map to the two longest diagonals
+                    for (int i = 1; i <= 5; i++)
                     {
-                        validPositions.Add((mappedRow, mappedCol));
+                        validPositions.Add((i, i));     // Main diagonal
+                        validPositions.Add((i, 6 - i)); // Anti-diagonal
                     }
                 }
-                else
+                else if (r == 0 || r == 6)
                 {
-                    validPositions.Add((mappedRow, mappedCol));
+                    // Top/Bottom edge maps to the entire column
+                    for (int i = 1; i <= 5; i++)
+                    {
+                        validPositions.Add((i, c));
+                    }
+                }
+                else if (c == 0 || c == 6)
+                {
+                    // Left/Right edge maps to the entire row
+                    for (int i = 1; i <= 5; i++)
+                    {
+                        validPositions.Add((r, i));
+                    }
                 }
             }
 
@@ -235,12 +236,22 @@ namespace backendAPI
             if (_board7![row, col] != 0)
                 return false;
 
-            // 3. Intersection & Diagonal Rules
+            // 3. Adjacency Rule (Level 1 rule)
+            // Note: If this causes deadlocks with the Intersection rule, 
+            // we might need to use a more relaxed adjacency or ensure the board is solvable.
+            if (!IsAdjacent(row, col))
+                return false;
+
+            // 4. Intersection & Diagonal Rules
             var validPositions = GetValidInnerPositionsLevel3(currentNumber);
             bool isValid = validPositions.Any(p => p.row == row && p.col == col);
 
             if (!isValid)
                 return false;
+
+            // Bonus points for diagonal moves (Level 1 rule)
+            if (IsDiagonal(row, col))
+                score++;
 
             // Place the number
             _board7[row, col] = currentNumber;
