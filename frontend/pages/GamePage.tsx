@@ -227,8 +227,8 @@ const GamePage = () => {
               </div>
             </div>
 
-            {/* Controls - hide when viewing completed */}
-            {!isViewingCompleted && (
+            {/* Controls - hide when viewing completed or level completed */}
+            {!isViewingCompleted && !gameState.hasWon && (
             <div className="flex flex-wrap items-center justify-center gap-2">
               {/* Undo */}
               <button
