@@ -14,6 +14,10 @@ namespace backendAPI.Models
         public int? LastCol { get; set; }
         public bool IsValid { get; set; } = true;
         public bool HasWon { get; set; }
+        public int? TimeLimitSeconds { get; set; }
+        public int ElapsedSeconds { get; set; }
+        public int TimeRemainingSeconds { get; set; }
+        public bool IsOvertime { get; set; }
     }
 
     public class PlaceNumberRequest
@@ -39,6 +43,8 @@ namespace backendAPI.Models
         public int[][]? Level1Board { get; set; }
         /// <summary>Optional. When Level=3, use this 7x7 board - outer ring kept, inner 5x5 cleared except 1 (from completed Level 2).</summary>
         public int[][]? Level2Board { get; set; }
+        /// <summary>Optional time limit override in seconds (0 = use config, null = no limit).</summary>
+        public int? TimeLimitSeconds { get; set; }
     }
 
     public class UndoRequest

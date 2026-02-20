@@ -12,6 +12,10 @@ export interface GameState {
   lastCol: number | null
   isValid: boolean
   hasWon: boolean
+  timeLimitSeconds: number | null
+  elapsedSeconds: number
+  timeRemainingSeconds: number
+  isOvertime: boolean
 }
 
 export interface Move {

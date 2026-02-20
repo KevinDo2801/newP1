@@ -1,4 +1,5 @@
 using backendAPI.Models;
+using Microsoft.Extensions.Options;
 using System.Collections.Concurrent;
 
 namespace backendAPI
@@ -7,6 +8,12 @@ namespace backendAPI
     {
         private readonly ConcurrentDictionary<string, GameSession> _sessions = new();
         private readonly Random _random = new();
+        private readonly GameSettings _gameSettings;
+
+        public GameStateService(IOptions<GameSettings> gameSettings)
+        {
+            _gameSettings = gameSettings.Value;
+        }
 
         public class GameSession
         {
@@ -15,6 +22,8 @@ namespace backendAPI
             public int Level { get; set; }
             public GameLogic GameLogic { get; set; } = new();
             public DateTime StartTime { get; set; }
+            public int? TimeLimitSeconds { get; set; }
+            public int BaseScore { get; set; } = 0; // Score without time bonus/penalty
             public Stack<MoveHistory> MoveHistory { get; set; } = new();
             public int FirstNumberRow { get; set; } = -1;
             public int FirstNumberCol { get; set; } = -1;
@@ -30,17 +39,36 @@ namespace backendAPI
             public int Level { get; set; }
         }
 
-        public string CreateNewGame(string playerUsername, int level, int[][]? level1Board = null, int[][]? level2Board = null)
+        public string CreateNewGame(NewGameRequest request)
         {
+            string playerUsername = request.PlayerUsername;
+            int level = request.Level;
+            int[][]? level1Board = request.Level1Board;
+            int[][]? level2Board = request.Level2Board;
+
             if (level < 1 || level > 3)
                 level = 1;
             var gameId = Guid.NewGuid().ToString();
+
+            // Determine time limit
+            int? timeLimit = null;
+            if (request.TimeLimitSeconds.HasValue && request.TimeLimitSeconds.Value > 0)
+            {
+                timeLimit = request.TimeLimitSeconds.Value;
+            }
+            else
+            {
+                timeLimit = _gameSettings.TimeLimits.GetTimeLimitForLevel(level);
+            }
+
             var session = new GameSession
             {
                 GameId = gameId,
                 PlayerUsername = playerUsername,
                 Level = level,
-                StartTime = DateTime.UtcNow
+                StartTime = DateTime.UtcNow,
+                TimeLimitSeconds = timeLimit,
+                BaseScore = 0
             };
 
             if (level == 1)
@@ -110,9 +138,14 @@ namespace backendAPI
             var session = GetSession(gameId);
             if (session == null || session.Level != 1 || !session.GameLogic.HasWon())
                 return false;
+
             if (!session.GameLogic.ExpandToLevel2())
                 return false;
+
             session.Level = 2;
+            session.BaseScore = 0; // Reset base score for Level 2
+            session.StartTime = DateTime.UtcNow; // Reset timer for Level 2
+            session.TimeLimitSeconds = _gameSettings.TimeLimits.GetTimeLimitForLevel(2); // Update time limit for Level 2
             session.MoveHistory.Clear();
             return true;
         }
@@ -123,9 +156,14 @@ namespace backendAPI
             var session = GetSession(gameId);
             if (session == null || session.Level != 2 || !session.GameLogic.HasWon())
                 return false;
+
             if (!session.GameLogic.ExpandToLevel3())
                 return false;
+
             session.Level = 3;
+            session.BaseScore = 0; // Reset base score for Level 3
+            session.StartTime = DateTime.UtcNow; // Reset timer for Level 3
+            session.TimeLimitSeconds = _gameSettings.TimeLimits.GetTimeLimitForLevel(3); // Update time limit for Level 3
             session.MoveHistory.Clear();
             return true;
         }
@@ -205,6 +243,20 @@ namespace backendAPI
                 }
             }
 
+            var elapsed = (int)(DateTime.UtcNow - session.StartTime).TotalSeconds;
+            int timeRemaining = 0;
+            bool isOvertime = false;
+
+            if (session.TimeLimitSeconds.HasValue)
+            {
+                timeRemaining = session.TimeLimitSeconds.Value - elapsed;
+                isOvertime = timeRemaining < 0;
+            }
+
+            // Total score = base score from previous levels + current level score + current time bonus/penalty
+            int currentLevelScore = session.GameLogic.GetScore();
+            int totalScore = session.BaseScore + currentLevelScore;
+
             return new GameStateDto
             {
                 PlayerUsername = session.PlayerUsername,
@@ -213,11 +265,35 @@ namespace backendAPI
                 CurrentNumber = session.GameLogic.GetCurrentNumber(),
                 NextNumberToPlace = session.GameLogic.GetCurrentNumber(),
                 StartTime = session.StartTime.ToString("O"),
-                Score = session.GameLogic.GetScore(),
+                Score = totalScore,
                 LastRow = session.GameLogic.GetLastRow() >= 0 ? session.GameLogic.GetLastRow() : null,
                 LastCol = session.GameLogic.GetLastCol() >= 0 ? session.GameLogic.GetLastCol() : null,
-                HasWon = session.GameLogic.HasWon()
+                HasWon = session.GameLogic.HasWon(),
+                TimeLimitSeconds = session.TimeLimitSeconds,
+                ElapsedSeconds = elapsed,
+                TimeRemainingSeconds = Math.Max(0, timeRemaining),
+                IsOvertime = isOvertime
             };
+        }
+
+        public int CalculateFinalScore(string gameId)
+        {
+            var session = GetSession(gameId);
+            if (session == null) return 0;
+
+            int currentLevelScore = session.GameLogic.GetScore();
+            int totalBaseScore = session.BaseScore + currentLevelScore;
+
+            // No time limit = no time bonus/penalty
+            if (!session.TimeLimitSeconds.HasValue)
+                return totalBaseScore;
+
+            var elapsed = (int)(DateTime.UtcNow - session.StartTime).TotalSeconds;
+            int timeDiff = session.TimeLimitSeconds.Value - elapsed;
+
+            // Bonus for finishing early: +1 point per second unused
+            // Penalty for overtime: -1 point per second over
+            return totalBaseScore + timeDiff;
         }
 
         public PlaceNumberResponse PlaceNumber(string gameId, int row, int col)
@@ -290,8 +366,11 @@ namespace backendAPI
                     history.Level
                 );
                 session.Level = history.Level;
-                session.GameLogic.ApplyUndoPenalty();
                 undone++;
+            }
+            if (undone > 0)
+            {
+                session.GameLogic.ApplyUndoPenalty(undone);
             }
             return undone > 0;
         }

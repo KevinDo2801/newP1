@@ -159,6 +159,9 @@ const SelectLevelPage = () => {
               <span className="text-xs text-slate-500">5x5 Grid</span>
             </div>
             <h2 className="text-lg font-bold text-white mb-1">The Inner Grid</h2>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">⏱️ 60s limit</span>
+            </div>
             <p className="text-sm text-slate-400 mb-4 flex-1">
               Place numbers 1-25 sequentially in adjacent cells. Diagonal placements earn bonus points.
             </p>
@@ -195,6 +198,9 @@ const SelectLevelPage = () => {
               <span className="text-xs text-slate-500">7x7 Grid</span>
             </div>
             <h2 className="text-lg font-bold text-white mb-1">Outer Ring Expansion</h2>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-[10px] bg-accent/10 text-accent px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">⏱️ 120s limit</span>
+            </div>
             <p className="text-sm text-slate-400 mb-4 flex-1">
               The board expands with a ring of 24 cells. Place numbers 2-25 on the outer ring based on their positions in the inner board.
             </p>
@@ -233,6 +239,9 @@ const SelectLevelPage = () => {
               <span className="text-xs text-slate-500">7x7 Grid</span>
             </div>
             <h2 className="text-lg font-bold text-white mb-1">Intersection Master</h2>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-[10px] bg-amber/10 text-amber px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">⏱️ 180s limit</span>
+            </div>
             <p className="text-sm text-slate-400 mb-4 flex-1">
               The final challenge. Fill the inner 5x5 grid using the outer ring as your guide. Master the intersection and diagonal rules.
             </p>

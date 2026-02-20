@@ -19,7 +19,7 @@ namespace backendAPI.Controllers
         [HttpPost("new")]
         public IActionResult CreateNewGame([FromBody] NewGameRequest request)
         {
-            var gameId = _gameStateService.CreateNewGame(request.PlayerUsername, request.Level, request.Level1Board, request.Level2Board);
+            var gameId = _gameStateService.CreateNewGame(request);
             var gameState = _gameStateService.GetGameState(gameId);
             return Ok(new { GameId = gameId, GameState = gameState });
         }
@@ -69,11 +69,42 @@ namespace backendAPI.Controllers
             // Check if game is won
             if (response.GameState?.HasWon == true)
             {
+                var finalScore = _gameStateService.CalculateFinalScore(request.GameId);
+                response.GameState.Score = finalScore;
+
                 var session = _gameStateService.GetSession(request.GameId);
                 if (session != null)
                 {
                     var duration = (int)(DateTime.UtcNow - session.StartTime).TotalSeconds;
-                    _gameLogService.LogGameCompletion(session, duration);
+                    
+                    // Log with final score
+                    var board = session.GameLogic.GetBoard();
+                    int rows = session.GameLogic.GetBoardRows();
+                    int cols = session.GameLogic.GetBoardCols();
+                    var boardArray = new int[rows][];
+                    for (int i = 0; i < rows; i++)
+                    {
+                        boardArray[i] = new int[cols];
+                        for (int j = 0; j < cols; j++)
+                        {
+                            boardArray[i][j] = board[i, j];
+                        }
+                    }
+
+                    var log = new GameLogDto
+                    {
+                        PlayerUsername = session.PlayerUsername,
+                        CompletedAt = DateTime.UtcNow.ToString("O"),
+                        Duration = duration,
+                        Level = session.Level,
+                        Score = finalScore,
+                        Board = boardArray
+                    };
+
+                    var fileName = $"game_log_{DateTime.UtcNow:yyyyMMdd_HHmmss}_{session.GameId}.json";
+                    var filePath = Path.Combine("logs", fileName);
+                    var json = System.Text.Json.JsonSerializer.Serialize(log, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+                    System.IO.File.WriteAllText(filePath, json);
                 }
             }
 

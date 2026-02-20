@@ -93,7 +93,7 @@ namespace backendAPI
                 _board7 = (int[,])loadedBoard.Clone();
             }
             currentNumber = loadedCurrentNumber;
-            score = loadedScore;
+            // score = loadedScore; // US10: Score is persistent, don't overwrite from history
             lastRow = loadedLastRow;
             lastCol = loadedLastCol;
         }
@@ -286,6 +286,7 @@ namespace backendAPI
             currentNumber = 2; // Start placing numbers 2-25 back in inner grid
             lastRow = oneRow;
             lastCol = oneCol;
+            score = 0; // Reset score for Level 3
             return true;
         }
 
@@ -318,7 +319,7 @@ namespace backendAPI
             lastRow = oneRow >= 0 ? oneRow : 1;
             lastCol = oneCol >= 0 ? oneCol : 1;
             currentNumber = 2;
-            // score = 0; // US10: Score is accumulated and can go negative, don't reset to 0
+            score = 0; // Reset score for Level 3
         }
 
         /// <summary>Initialize a new Level 3 game directly.</summary>
@@ -357,7 +358,7 @@ namespace backendAPI
             lastCol = c1;
 
             currentNumber = 2;
-            // score = 0; // US10: Score is accumulated and can go negative, don't reset to 0
+            score = 0; // Reset score for Level 3
         }
 
         public bool PlaceNumber(int row, int col)
@@ -439,6 +440,7 @@ namespace backendAPI
             currentNumber = 2; // Start placing numbers 2-25 in outer ring
             lastRow = lastRow + 1;
             lastCol = lastCol + 1;
+            score = 0; // Reset score for Level 2
             return true;
         }
 
@@ -472,7 +474,7 @@ namespace backendAPI
                 if (lastRow >= 0) break;
             }
             currentNumber = 2;
-            // score = 0; // US10: Score is accumulated and can go negative, don't reset to 0
+            score = 0; // Reset score for Level 2
         }
 
         /// <summary>Initialize a new Level 2 game with inner 5x5 pre-filled with numbers 1-25 in a valid pattern.</summary>
@@ -524,7 +526,7 @@ namespace backendAPI
             }
             
             currentNumber = 2; // Start placing numbers 2-25 in outer ring
-            // score = 0; // US10: Score is accumulated and can go negative, don't reset to 0
+            score = 0; // Reset score for Level 2
         }
 
         /// <summary>Level 2: Find the position of a number (2-25) in the inner 5x5 board. Returns (-1, -1) if not found.</summary>
@@ -625,9 +627,9 @@ namespace backendAPI
             return true;
         }
 
-        public void ApplyUndoPenalty()
+        public void ApplyUndoPenalty(int count = 1)
         {
-            score--; // US10: -1 point per undo, can go negative
+            score -= count; // US10: -1 point per move undone
         }
 
         /// <summary>Clear board. Level 1: clear all; optionally keep or re-randomize 1. Level 2: clear only outer ring.</summary>

@@ -30,7 +30,8 @@ export function createNewGame(
   playerUsername: string,
   level: number = 1,
   level1Board?: number[][],
-  level2Board?: number[][]
+  level2Board?: number[][],
+  timeLimitSeconds?: number | null
 ): Promise<NewGameResponse> {
   return request<NewGameResponse>('/new', {
     method: 'POST',
@@ -39,6 +40,7 @@ export function createNewGame(
       level,
       level1Board: level1Board ?? undefined,
       level2Board: level2Board ?? undefined,
+      timeLimitSeconds: timeLimitSeconds ?? undefined,
     }),
   })
 }

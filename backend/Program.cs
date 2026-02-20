@@ -1,4 +1,5 @@
 using backendAPI;
+using backendAPI.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -6,6 +7,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Add configuration
+builder.Services.Configure<GameSettings>(
+    builder.Configuration.GetSection("GameSettings"));
 
 // CORS for frontend
 builder.Services.AddCors(options =>

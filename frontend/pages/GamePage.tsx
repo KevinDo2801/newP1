@@ -4,6 +4,12 @@ import type { GameState } from "../types";
 import * as api from "../services/gameApi";
 import { playValidSound, playInvalidSound, playWinSound } from "../utils/sounds";
 
+function formatTime(seconds: number): string {
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
 const GamePage = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -19,6 +25,35 @@ const GamePage = () => {
   const [undoSteps, setUndoSteps] = useState(1);
   const [keepOne, setKeepOne] = useState(true);
   const [showReset, setShowReset] = useState(false);
+  const [localElapsed, setLocalElapsed] = useState<number>(navState?.gameState?.elapsedSeconds ?? 0);
+
+  // Update local timer every second
+  useEffect(() => {
+    if (!gameState || gameState.hasWon || isViewingCompleted) return;
+    
+    const interval = setInterval(() => {
+      setLocalElapsed(prev => prev + 1);
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, [gameState?.hasWon, isViewingCompleted]);
+
+  // Sync with server state periodically
+  useEffect(() => {
+    if (!gameId || !gameState || gameState.hasWon || isViewingCompleted) return;
+    
+    const interval = setInterval(async () => {
+      try {
+        const state = await api.getGameState(gameId);
+        setGameState(state);
+        setLocalElapsed(state.elapsedSeconds);
+      } catch {
+        // Silent fail
+      }
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, [gameId, gameState?.hasWon, isViewingCompleted]);
 
   const username = navState?.username ?? gameState?.playerUsername ?? "Player";
 
@@ -91,7 +126,11 @@ const GamePage = () => {
     setBusy(true);
     try {
       const res = await api.expandToLevel2(gameId);
-      if (res.gameState) { setGameState(res.gameState); msg("Welcome to Level 2!"); }
+      if (res.gameState) { 
+        setGameState(res.gameState); 
+        setLocalElapsed(0);
+        msg("Welcome to Level 2!"); 
+      }
     } catch { msg("Expand failed", "err"); }
     finally { setBusy(false); }
   }, [gameId, gameState, busy]);
@@ -104,6 +143,7 @@ const GamePage = () => {
       const res = await api.expandToLevel3(gameId);
       if (res.gameState) { 
         setGameState(res.gameState); 
+        setLocalElapsed(0);
         msg("Welcome to Level 3! Solve the puzzle using the outer ring numbers."); 
       }
     } catch { msg("Expand failed", "err"); }
@@ -153,9 +193,44 @@ const GamePage = () => {
                 : 'text-red-400 bg-red-400/10 border border-red-400/20'
             }`}>
               {gameState.score} pts
+              {gameState.timeLimitSeconds && !gameState.hasWon && !isViewingCompleted && (
+                <span className="ml-1.5 opacity-50 font-medium">
+                  {gameState.isOvertime 
+                    ? `(-${Math.abs(gameState.timeLimitSeconds - localElapsed)})`
+                    : `(+${Math.max(0, gameState.timeLimitSeconds - localElapsed)})`
+                  }
+                </span>
+              )}
             </span>
           </div>
         </div>
+
+        {/* Timer Display */}
+        {gameState.timeLimitSeconds && (
+          <div className="flex justify-center mb-6">
+            <div className={`flex items-center gap-3 px-4 py-2 rounded-xl border ${
+              gameState.isOvertime || (gameState.timeLimitSeconds - localElapsed < 0)
+                ? 'bg-red-500/10 border-red-500/30 text-red-400' 
+                : (gameState.timeLimitSeconds - localElapsed < 15)
+                ? 'bg-amber-500/10 border-amber-500/30 text-amber-400 animate-pulse'
+                : 'bg-blue-500/10 border-blue-500/30 text-blue-400'
+            }`}>
+              <div className="flex flex-col items-center">
+                <span className="text-[10px] uppercase font-bold tracking-wider opacity-60">Elapsed</span>
+                <span className="text-xl font-mono font-black">{formatTime(localElapsed)}</span>
+              </div>
+              <div className="w-px h-8 bg-current opacity-20" />
+              <div className="flex flex-col items-center">
+                <span className="text-[10px] uppercase font-bold tracking-wider opacity-60">
+                  {localElapsed > gameState.timeLimitSeconds ? 'Overtime' : 'Remaining'}
+                </span>
+                <span className="text-xl font-mono font-black">
+                  {formatTime(Math.abs(gameState.timeLimitSeconds - localElapsed))}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Main: board + sidebar */}
         <div className="flex flex-col lg:flex-row gap-6">
@@ -316,7 +391,20 @@ const GamePage = () => {
             {gameState.level === 1 && gameState.hasWon && (
               <div className="bg-card border border-green/20 rounded-xl p-5 text-center">
                 <p className="text-green text-lg font-bold mb-1">Level 1 Complete!</p>
-                <p className="text-slate-400 text-sm mb-4">Score: {gameState.score} pts</p>
+                <p className="text-slate-400 text-sm mb-1">Score: {gameState.score} pts</p>
+                {gameState.timeLimitSeconds && (
+                  <div className="mb-4 py-2 px-3 bg-bg/50 rounded-lg border border-border">
+                    <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">Time Performance</p>
+                    <p className="text-xs text-slate-300">
+                      {formatTime(gameState.elapsedSeconds)} / {formatTime(gameState.timeLimitSeconds)}
+                    </p>
+                    {gameState.elapsedSeconds <= gameState.timeLimitSeconds ? (
+                      <p className="text-xs text-green font-bold mt-1">⚡ Speed bonus: +{gameState.timeLimitSeconds - gameState.elapsedSeconds} pts</p>
+                    ) : (
+                      <p className="text-xs text-red-400 font-bold mt-1">⏰ Overtime penalty: -{gameState.elapsedSeconds - gameState.timeLimitSeconds} pts</p>
+                    )}
+                  </div>
+                )}
                 {isViewingCompleted ? (
                   <div className="flex flex-col gap-2">
                     <p className="text-xs text-slate-500">Viewing your completed result</p>
@@ -343,7 +431,20 @@ const GamePage = () => {
             {gameState.level === 2 && gameState.hasWon && (
               <div className="bg-card border border-accent/20 rounded-xl p-5 text-center">
                 <p className="text-accent text-lg font-bold mb-1">Level 2 Complete!</p>
-                <p className="text-slate-400 text-sm mb-4">Final Score: {gameState.score} pts</p>
+                <p className="text-slate-400 text-sm mb-1">Final Score: {gameState.score} pts</p>
+                {gameState.timeLimitSeconds && (
+                  <div className="mb-4 py-2 px-3 bg-bg/50 rounded-lg border border-border">
+                    <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">Time Performance</p>
+                    <p className="text-xs text-slate-300">
+                      {formatTime(gameState.elapsedSeconds)} / {formatTime(gameState.timeLimitSeconds)}
+                    </p>
+                    {gameState.elapsedSeconds <= gameState.timeLimitSeconds ? (
+                      <p className="text-xs text-green font-bold mt-1">⚡ Speed bonus: +{gameState.timeLimitSeconds - gameState.elapsedSeconds} pts</p>
+                    ) : (
+                      <p className="text-xs text-red-400 font-bold mt-1">⏰ Overtime penalty: -{gameState.elapsedSeconds - gameState.timeLimitSeconds} pts</p>
+                    )}
+                  </div>
+                )}
                 {isViewingCompleted ? (
                   <div className="flex flex-col gap-2">
                     <p className="text-xs text-slate-500">Viewing your completed result</p>
@@ -370,8 +471,21 @@ const GamePage = () => {
             {gameState.level === 3 && gameState.hasWon && (
               <div className="bg-card border border-amber/20 rounded-xl p-5 text-center">
                 <p className="text-amber text-lg font-bold mb-1">Level 3 Complete!</p>
-                <p className="text-slate-400 text-sm mb-2">You are a Number Logic Master!</p>
-                <p className="text-slate-500 text-xs mb-4">Final Score: {gameState.score} pts</p>
+                <p className="text-slate-400 text-sm mb-1">You are a Number Logic Master!</p>
+                <p className="text-slate-500 text-xs mb-1">Final Score: {gameState.score} pts</p>
+                {gameState.timeLimitSeconds && (
+                  <div className="mb-4 py-2 px-3 bg-bg/50 rounded-lg border border-border">
+                    <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">Time Performance</p>
+                    <p className="text-xs text-slate-300">
+                      {formatTime(gameState.elapsedSeconds)} / {formatTime(gameState.timeLimitSeconds)}
+                    </p>
+                    {gameState.elapsedSeconds <= gameState.timeLimitSeconds ? (
+                      <p className="text-xs text-green font-bold mt-1">⚡ Speed bonus: +{gameState.timeLimitSeconds - gameState.elapsedSeconds} pts</p>
+                    ) : (
+                      <p className="text-xs text-red-400 font-bold mt-1">⏰ Overtime penalty: -{gameState.elapsedSeconds - gameState.timeLimitSeconds} pts</p>
+                    )}
+                  </div>
+                )}
                 {isViewingCompleted && (
                   <div className="flex flex-col gap-2">
                     <p className="text-xs text-slate-500">Viewing your completed result</p>
