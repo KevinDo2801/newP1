@@ -1,4 +1,5 @@
 using backendAPI.Models;
+using Microsoft.Extensions.Options;
 using System.Text.Json;
 
 namespace backendAPI
@@ -6,9 +7,11 @@ namespace backendAPI
     public class GameLogService
     {
         private readonly string _logsDirectory = "logs";
+        private readonly GameSettings _gameSettings;
 
-        public GameLogService()
+        public GameLogService(IOptions<GameSettings> gameSettings)
         {
+            _gameSettings = gameSettings?.Value ?? new GameSettings();
             if (!Directory.Exists(_logsDirectory))
             {
                 Directory.CreateDirectory(_logsDirectory);
@@ -90,6 +93,11 @@ namespace backendAPI
                 if (pos25.row >= 0) break;
             }
 
+            var timeLimit = _gameSettings.TimeLimits.GetTimeLimitForLevel(best.Level);
+            var elapsed = best.Duration;
+            var timeRemaining = timeLimit.HasValue ? Math.Max(0, timeLimit.Value - elapsed) : 0;
+            var isOvertime = timeLimit.HasValue && elapsed > timeLimit.Value;
+
             return new GameStateDto
             {
                 PlayerUsername = best.PlayerUsername ?? string.Empty,
@@ -102,7 +110,11 @@ namespace backendAPI
                 LastRow = pos25.row >= 0 ? pos25.row : null,
                 LastCol = pos25.col >= 0 ? pos25.col : null,
                 IsValid = true,
-                HasWon = true
+                HasWon = true,
+                TimeLimitSeconds = timeLimit,
+                ElapsedSeconds = elapsed,
+                TimeRemainingSeconds = timeRemaining,
+                IsOvertime = isOvertime
             };
         }
 
