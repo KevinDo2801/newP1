@@ -14,21 +14,22 @@ BACKEND (C# / .NET):
   - Program.cs              Application entry point; configures ASP.NET Core Web API,
                             CORS, Swagger, and registers game services
   - GameLogic.cs            Core game rules, board state, placement validation,
-                            undo logic, Level 1/2 board expansion
+                            undo logic, Level 1/2/3 board expansion
   - ConsoleUI.cs            Console-based UI for play-from-terminal; used with
                             GameLogic and SaveLoadManager
   - SaveLoadManager.cs      Saves/loads game state to/from text file (savegame.txt)
   - Controllers/GameController.cs   REST API endpoints: new, place, undo, clear,
-                            expand-level2; delegates to GameStateService
+                            expand-level2, expand-level3; delegates to GameStateService
   - Models/GameStateDto.cs  Data transfer objects for game state (board, score,
                             level, next number, etc.)
   - Models/GameLogDto.cs    DTO for completed game logs (player, date, duration,
                             level, score, board)
+  - Models/GameSettings.cs  Time limit preset per level (Level1/2/3 in seconds)
   - Services/GameStateService.cs    In-memory game state management; creates
                             games, processes moves, undo, clear, expand
   - Services/GameLogService.cs      Persists completed games as JSON files in
                             backend/logs/
-  - appsettings.json        Default configuration (URLs, logging)
+  - appsettings.json        Default configuration (URLs, logging, TimeLimits per level)
   - appsettings.Development.json   Development settings
   - Properties/launchSettings.json  Launch profiles for debugging
   - backendAPI.csproj       Project file; targets .NET 10, references Swashbuckle
@@ -38,8 +39,8 @@ FRONTEND (TypeScript / React):
   - App.tsx                 Root component; defines routes (/, /select-level, /game)
   - index.html              HTML shell; loads main.tsx
   - pages/OnboardPage.tsx   Landing page; player name input and Start Game
-  - pages/SelectLevelPage.tsx   Level selection (Level 1 or 2)
-  - pages/GamePage.tsx      Main game UI; 5x5/7x7 board, controls, sidebar
+  - pages/SelectLevelPage.tsx   Level selection (Level 1, 2, or 3)
+  - pages/GamePage.tsx      Main game UI; 5x5/7x7 board, controls, sidebar, timer
   - services/gameApi.ts     API client; calls backend /api/Game/* endpoints
   - types/index.ts          TypeScript interfaces (GameState, etc.)
   - utils/sounds.ts         Sound effects via Web Audio API (valid/invalid beep)
@@ -121,32 +122,46 @@ US5  Undo/rollback as many moves as desired from most recent                 Don
 US6  Sound/beep on invalid placement to warn player                          Done
 US7  Log and save completed game (player, date/time, level, score, board)    Done
 US8  Level 2 expansion — 7x7 board (inner 5x5 + 24-cell outer ring)          Done
+US9  Level 3 — final level (inner 5x5 reconstruction, intersection/diagonal  Done
+     rules; expand after Level 2 win)
+US10 Reward points — +1 per number placed (all levels); -1 per undo/rollback Done
+     or clear; scores accumulated across levels
+US11 Time limit preset per level; +1 pt per second unused; -1 pt per second  Done
+     over limit
 
 --------------------------------------------------------------------------------
 5. HOW TO PLAY
 --------------------------------------------------------------------------------
 
 1. Enter your name on the landing page and click Start Game
-2. Select Level 1 to begin
+2. Select Level 1, 2, or 3 to begin (Level 2/3 unlock after previous level win)
 3. Number 1 is already placed randomly on the 5x5 board
 4. Click any empty adjacent cell (including diagonals) to place the next number
 5. The Next Number is displayed in the sidebar — you cannot skip or reorder
-6. Diagonal placements earn +1 bonus point
-7. Use Undo to rollback any number of recent moves
-8. Use Reset to clear the board (option to keep #1 in place or re-randomize)
-9. Complete all 25 numbers to finish Level 1, then click Expand to Level 2
-10. In Level 2, place numbers 26–49 on the outer ring of the expanded 7x7 board
+6. REWARDS (US10): +1 point per number successfully placed (all levels); -1
+   point per cell rolled back (undo) or cleared (reset); scores accumulate
+7. Diagonal placements earn +1 bonus point (Level 1)
+8. Use Undo to rollback any number of recent moves
+9. Use Reset to clear the board (option to keep #1 in place or re-randomize)
+10. Complete all 25 numbers to finish Level 1, then click Expand to Level 2
+11. In Level 2, place numbers 26–49 on the outer ring of the 7x7 board
+12. Complete Level 2, then click Expand to Level 3 (US9) — inner 5x5 is cleared
+    except #1; place numbers 2–25 back using intersection/diagonal rules
+13. TIME LIMIT (US11): Each level has a preset time limit (e.g. 60/120/180 sec).
+    Finish early: +1 point per second unused. Finish late: -1 point per second over
 
 --------------------------------------------------------------------------------
 6. API ENDPOINTS
 --------------------------------------------------------------------------------
 
-POST  /api/Game/new           Create a new game
+POST  /api/Game/new           Create a new game (TimeLimitSeconds optional)
 GET   /api/Game/{gameId}      Get current game state
+GET   /api/Game/progress/{username}  Get player progress (levels completed, total score)
 POST  /api/Game/place         Place the next number at (row, col)
 POST  /api/Game/undo          Undo last N moves
 POST  /api/Game/clear         Clear/reset the board
 POST  /api/Game/expand-level2 Expand to Level 2 after Level 1 win
+POST  /api/Game/expand-level3 Expand to Level 3 after Level 2 win
 
 --------------------------------------------------------------------------------
 7. GAME LOGS (Sample File)
@@ -157,8 +172,12 @@ Completed games are saved as JSON files in backend/logs/ with:
 - Completion date/time
 - Duration (seconds)
 - Level
-- Score (diagonal bonus points)
+- Score (placement points + time bonus/penalty; accumulated across levels)
+- Time limit used (when applicable)
 - Full board state
+
+Time limits are configured in appsettings.json (GameSettings.TimeLimits:
+  Level1, Level2, Level3 in seconds; 0 = no limit).
 
 A sample completed game log is included: game_log_*.json
 
